@@ -1,9 +1,78 @@
 @import 'tailwindcss';
+@import 'tokens.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+    /* Theme colors based on tokens */
+    --color-rutx-primary: var(--rutx-primary);
+    --color-rutx-primary-dark: var(--rutx-primary-dark);
+    --color-rutx-accent: var(--rutx-accent);
+    --color-rutx-accent-light: var(--rutx-accent-light);
+    --color-rutx-secondary: var(--rutx-secondary);
+    --color-rutx-bg: var(--rutx-bg);
+    --color-rutx-surface: var(--rutx-surface);
+    --color-rutx-surface-grey: var(--rutx-surface-grey);
+    --color-rutx-text: var(--rutx-text);
+    --color-rutx-text-muted: var(--rutx-text-muted);
+    --color-rutx-border: var(--rutx-border);
+    --color-rutx-status-success: var(--rutx-status-success);
+    --color-rutx-status-warning: var(--rutx-status-warning);
+    --color-rutx-status-error: var(--rutx-status-error);
+    --color-rutx-status-unknown: var(--rutx-status-unknown);
+
+    /* Shadows */
+    --shadow-rutx-base: var(--rutx-shadow-base);
+    --shadow-rutx-hover: var(--rutx-shadow-hover);
+}
+
+@layer base {
+    @font-face {
+        font-family: 'Inter';
+        src: url('/fonts/inter/Inter-Regular.woff2') format('woff2');
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+    }
+    @font-face {
+        font-family: 'Inter';
+        src: url('/fonts/inter/Inter-Medium.woff2') format('woff2');
+        font-weight: 500;
+        font-style: normal;
+        font-display: swap;
+    }
+    @font-face {
+        font-family: 'Inter';
+        src: url('/fonts/inter/Inter-SemiBold.woff2') format('woff2');
+        font-weight: 600;
+        font-style: normal;
+        font-display: swap;
+    }
+    @font-face {
+        font-family: 'Inter';
+        src: url('/fonts/inter/Inter-Bold.woff2') format('woff2');
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+    }
+    @font-face {
+        font-family: 'JetBrains Mono';
+        src: url('/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2') format('woff2');
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+    }
+
+    body {
+        @apply bg-rutx-bg text-rutx-text font-sans antialiased;
+    }
+    
+    /* Foco visible de accesibilidad */
+    *:focus-visible {
+        @apply outline-none ring-2 ring-rutx-primary ring-offset-2 ring-offset-rutx-bg;
+    }
 }
