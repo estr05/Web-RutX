@@ -8,4 +8,4 @@ Route::get('/', function () {
 });
 
 // Habilitar playground incondicionalmente en fase fundacional
-require __DIR__ . '/modules/playground.php';
+require __DIR__.'/modules/playground.php';
