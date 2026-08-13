@@ -11,14 +11,14 @@ return [
                 'cliente.index' => [
                     'label' => 'Clientes',
                     'icon' => 'users',
-                    'permission' => 'cliente.read'
+                    'permission' => 'cliente.read',
                 ],
                 'cliente.traspaso' => [
                     'label' => 'Traspaso de cliente',
                     'icon' => 'arrows-right-left',
-                    'permission' => 'cliente.transfer'
-                ]
-            ]
+                    'permission' => 'cliente.transfer',
+                ],
+            ],
         ],
         'producto' => [
             'label' => 'Producto',
@@ -29,19 +29,19 @@ return [
                 'producto.index' => [
                     'label' => 'Productos',
                     'icon' => 'cube',
-                    'permission' => 'producto.read'
+                    'permission' => 'producto.read',
                 ],
                 'producto.precios' => [
                     'label' => 'Listas de precio',
                     'icon' => 'currency-dollar',
-                    'permission' => 'producto.price.read'
+                    'permission' => 'producto.price.read',
                 ],
                 'producto.precios_zona' => [
                     'label' => 'Precios por zona',
                     'icon' => 'map-pin',
-                    'permission' => 'producto.price.read'
-                ]
-            ]
+                    'permission' => 'producto.price.read',
+                ],
+            ],
         ],
         'inventario' => [
             'label' => 'Inventario',
@@ -52,19 +52,19 @@ return [
                 'inventario.ruta' => [
                     'label' => 'Inventario por ruta',
                     'icon' => 'truck',
-                    'permission' => 'inventario.read'
+                    'permission' => 'inventario.read',
                 ],
                 'inventario.rechazados' => [
                     'label' => 'Productos rechazados',
                     'icon' => 'x-circle',
-                    'permission' => 'inventario.read'
+                    'permission' => 'inventario.read',
                 ],
                 'inventario.mermas' => [
                     'label' => 'Mermas',
                     'icon' => 'trash',
-                    'permission' => 'inventario.read'
-                ]
-            ]
+                    'permission' => 'inventario.read',
+                ],
+            ],
         ],
         'venta' => [
             'label' => 'Venta',
@@ -75,79 +75,79 @@ return [
                 'venta.levantamiento' => [
                     'label' => 'Levantamiento',
                     'icon' => 'document-plus',
-                    'permission' => 'venta.read'
+                    'permission' => 'venta.read',
                 ],
                 'venta.pedidos' => [
                     'label' => 'Pedidos',
                     'icon' => 'document-text',
-                    'permission' => 'venta.read'
+                    'permission' => 'venta.read',
                 ],
                 'venta.cobranza' => [
                     'label' => 'Cobranza',
                     'icon' => 'banknotes',
-                    'permission' => 'venta.read'
+                    'permission' => 'venta.read',
                 ],
                 'venta.utilidad' => [
                     'label' => 'Utilidad',
                     'icon' => 'presentation-chart-line',
-                    'permission' => 'venta.read'
+                    'permission' => 'venta.read',
                 ],
                 'venta.deposito' => [
                     'label' => 'Depósito Venta',
                     'icon' => 'arrow-down-tray',
-                    'permission' => 'venta.read'
+                    'permission' => 'venta.read',
                 ],
                 'venta.gasto' => [
                     'label' => 'Nuevo Gasto Operativo',
                     'icon' => 'receipt-percent',
-                    'permission' => 'venta.read'
+                    'permission' => 'venta.read',
                 ],
                 'venta.reporte_cliente' => [
                     'label' => 'Reporte de Ventas por Cliente',
                     'icon' => 'chart-pie',
-                    'permission' => 'reports.read'
+                    'permission' => 'reports.read',
                 ],
                 'venta.rentabilidad' => [
                     'label' => 'Reporte Rentabilidad por Ruta',
                     'icon' => 'chart-bar',
-                    'permission' => 'reports.read'
+                    'permission' => 'reports.read',
                 ],
                 'venta.mayor_venta' => [
                     'label' => 'Clientes con Mayor Venta',
                     'icon' => 'star',
-                    'permission' => 'reports.read'
+                    'permission' => 'reports.read',
                 ],
                 'venta.productos_rechazados' => [
                     'label' => 'Productos Rechazados',
                     'icon' => 'x-mark',
-                    'permission' => 'reports.read'
+                    'permission' => 'reports.read',
                 ],
                 'venta.preventa' => [
                     'label' => 'Reporte Preventa Entrega',
                     'icon' => 'clipboard-document-check',
-                    'permission' => 'reports.read'
+                    'permission' => 'reports.read',
                 ],
                 'venta.clientes_pendientes' => [
                     'label' => 'Clientes Pendientes',
                     'icon' => 'clock',
-                    'permission' => 'reports.read'
+                    'permission' => 'reports.read',
                 ],
                 'venta.visor' => [
                     'label' => 'Visor',
                     'icon' => 'eye',
-                    'permission' => 'venta.read'
+                    'permission' => 'venta.read',
                 ],
                 'venta.reportes' => [
                     'label' => 'Reportes y Gráficas',
                     'icon' => 'chart-pie',
-                    'permission' => 'reports.read'
+                    'permission' => 'reports.read',
                 ],
                 'venta.globales' => [
                     'label' => 'Reportes Globales',
                     'icon' => 'globe-americas',
-                    'permission' => 'reports.read'
-                ]
-            ]
+                    'permission' => 'reports.read',
+                ],
+            ],
         ],
         'ruta' => [
             'label' => 'Ruta',
@@ -158,24 +158,24 @@ return [
                 'ruta.mapa' => [
                     'label' => 'Mapa en tiempo real',
                     'icon' => 'map',
-                    'permission' => 'route.monitor'
+                    'permission' => 'route.monitor',
                 ],
                 'ruta.jornada' => [
                     'label' => 'Jornada del día',
                     'icon' => 'sun',
-                    'permission' => 'route.monitor'
+                    'permission' => 'route.monitor',
                 ],
                 'ruta.agenda' => [
                     'label' => 'Agenda',
                     'icon' => 'calendar-days',
-                    'permission' => 'agenda.read'
+                    'permission' => 'agenda.read',
                 ],
                 'ruta.kilometraje' => [
                     'label' => 'Kilometraje',
                     'icon' => 'forward',
-                    'permission' => 'route.monitor'
-                ]
-            ]
+                    'permission' => 'route.monitor',
+                ],
+            ],
         ],
         'configuracion' => [
             'label' => 'Configuración',
@@ -186,19 +186,19 @@ return [
                 'configuracion.usuarios' => [
                     'label' => 'Usuarios',
                     'icon' => 'users',
-                    'permission' => 'config.users.read'
+                    'permission' => 'config.users.read',
                 ],
                 'configuracion.roles' => [
                     'label' => 'Roles',
                     'icon' => 'shield-check',
-                    'permission' => 'config.roles.read'
+                    'permission' => 'config.roles.read',
                 ],
                 'configuracion.zonas' => [
                     'label' => 'Zonas',
                     'icon' => 'map',
-                    'permission' => 'config.zones.read'
-                ]
-            ]
-        ]
-    ]
+                    'permission' => 'config.zones.read',
+                ],
+            ],
+        ],
+    ],
 ];

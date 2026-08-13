@@ -1,10 +1,10 @@
 # Especificación Visual y Documental — Día 1
 
 **Fecha:** 13 de agosto de 2026
-**Estado:** Especificación aprobada y lista para implementación en el Día 2.
+**Estado:** Implementación parcial (fundación en código creada; cierre final pendiente del Día 2).
 **Ámbito:** Definición de los contratos visuales, de navegación y de infraestructura base para RutX Web.
 
-Este documento consolida las especificaciones cerradas del Día 1. Ningún código (Blade, CSS, PHP) se genera en esta fase; este documento es el contrato exacto de construcción para los siguientes sprints.
+Este documento consolida las especificaciones cerradas del Día 1. Su implementación en código ha iniciado (revisar archivos creados como `tokens.css`, `app.css`, layout y componentes) y sirve como base técnica.
 
 ---
 

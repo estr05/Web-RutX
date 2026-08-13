@@ -15,7 +15,7 @@
     $currentModule = $activeModuleKey ? ($modules[$activeModuleKey] ?? null) : null;
 @endphp
 
-<aside class="w-64 bg-[#002D47] shadow-sm flex flex-col z-10 shrink-0">
+<aside class="w-64 bg-rutx-primary-dark shadow-sm flex flex-col z-10 shrink-0">
     @if($currentModule)
         <!-- Module Header -->
         <div class="h-[var(--rutx-height-topbar)] flex items-center px-6 border-b border-white/10">
@@ -30,7 +30,7 @@
                         $isViewActive = request()->routeIs($route);
                     @endphp
                     <li>
-                        <a href="{{ route($route ?? '#') }}" 
+                        <a href="{{ Route::has($route) ? route($route) : '#' }}" 
                            class="flex items-center px-6 py-3 transition-colors {{ $isViewActive ? 'bg-rutx-primary border-l-4 border-rutx-accent text-white' : 'text-white/75 hover:bg-white/10 hover:text-white border-l-4 border-transparent' }}">
                             <span class="text-sm font-medium">{{ $view['label'] }}</span>
                         </a>

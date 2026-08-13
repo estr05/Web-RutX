@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "check-tokens": "bash scripts/check-rutx-tokens.sh"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",

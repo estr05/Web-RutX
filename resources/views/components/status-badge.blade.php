@@ -2,10 +2,10 @@
 
 @php
     $classes = match($status) {
-        'success' => 'text-rutx-status-success bg-[#2E7D32]/12',
-        'warning' => 'text-rutx-status-warning bg-[#E65100]/12',
-        'error' => 'text-rutx-status-error bg-[#C62828]/12',
-        default => 'text-rutx-status-unknown bg-[#9E9E9E]/12'
+        'success' => 'text-rutx-status-success bg-rutx-status-success/12',
+        'warning' => 'text-rutx-status-warning bg-rutx-status-warning/12',
+        'error' => 'text-rutx-status-error bg-rutx-status-error/12',
+        default => 'text-rutx-status-unknown bg-rutx-status-unknown/12'
     };
 @endphp
 
