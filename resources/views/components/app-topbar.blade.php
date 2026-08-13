@@ -19,7 +19,7 @@
                 // Logica basica para detectar el modulo activo (segun el prefijo de la ruta)
                 $isActive = request()->routeIs($key . '.*') || (isset($activeModule) && $activeModule === $key);
             @endphp
-            <a href="{{ Route::has($module['default_route'] ?? '') ? route($module['default_route']) : '#' }}" 
+            <a href="{{ Route::has($module['default_route'] ?? '') ? route($module['default_route']) : '#' }}"
                class="flex items-center px-4 h-full transition-colors {{ $isActive ? 'text-white border-b-3 border-rutx-accent bg-rutx-primary-dark' : 'text-white/70 hover:text-white hover:bg-white/10' }}">
                 <span class="text-sm font-medium">{{ $module['label'] }}</span>
             </a>

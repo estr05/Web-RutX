@@ -1,6 +1,6 @@
 # RutX Web — Guidelines de Desarrollo
 
-**Versión:** 1.4 · **Fecha:** 14 de agosto de 2026 · **Autor:** Manus AI  
+**Versión:** 1.5 · **Fecha:** 14 de agosto de 2026 · **Autor:** Manus AI  
 **Vigencia:** obligatorio para todo commit, pull request y release del módulo web RutX (oficina/administración).  
 **Ámbito:** Desarrollo y seguridad de RutX Web y su consumo servidor a servidor de `/api/v2/web/*`; excluye API móvil y el administrador local del Sincronizador.  
 **Relación documental:** [`Mapa_Documental_RutX_Web.md`](Mapa_Documental_RutX_Web.md) define el propósito de cada documento; el plan visual define la apariencia; el contrato v2 define datos y endpoints; este archivo define **cómo se construye y protege** el código.
@@ -138,6 +138,13 @@ Todo módulo nuevo replica la anatomía del plan visual (breadcrumb → título 
 ### 3.2 Componentes base obligatorios
 
 Se usa **siempre** la lista del plan visual (`<x-data-table>`, `<x-kpi-card>`, `<x-filter-bar>`, `<x-date-range>`, `<x-chart>`, `<x-status-badge>`, `<x-currency>`, `<x-modal>`, `<x-alert>`, `<x-loading-state>`, `<x-map-view>`, `<x-notification-bell>`, `<x-page-header>`). Antes de escribir un elemento nuevo: **(1)** ¿existe un componente que lo cubra? → úsalo. **(2)** ¿le falta una variante? → extiéndelo con props, no lo clones. **(3)** Solo si no aplica nada, se propone un componente nuevo con justificación en el PR.
+
+### 3.2.1 Iconografía obligatoria: sin emojis
+
+- Queda prohibido usar **emojis o caracteres emoji Unicode** como recursos de interfaz. La prohibición comprende navegación, botones, acciones, KPIs, alertas, estados, tablas, filtros, tooltips, vacíos, carga, errores y texto que forme parte de la UI. El contenido introducido por el usuario se preserva sin modificar, pero la aplicación no genera ni propone emojis propios.
+- Todo significado visual se comunica con un **ícono SVG semántico** de la biblioteca aprobada por el proyecto, conforme al catálogo y los nombres definidos en el plan visual. Un mismo concepto conserva el mismo ícono en todos los módulos; no se sustituyen acciones equivalentes por íconos distintos.
+- Los íconos deben acompañarse de una etiqueta visible cuando haya espacio. Cuando una acción se represente solo con ícono, el control requiere `aria-label` en español y tooltip; los íconos decorativos usan `aria-hidden="true"`. Ningún ícono es el único medio para comunicar estado, error, permiso o resultado.
+- Como referencia base, los íconos de navegación, tarjetas y acciones usan **20px** y heredan el color semántico del componente. Los controles de solo ícono conservan un objetivo táctil mínimo de **40×40px**. Cualquier tamaño, variante o biblioteca adicional exige justificación en el PR y aprobación de diseño.
 
 ### 3.3 Convenciones
 

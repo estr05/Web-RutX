@@ -2,7 +2,7 @@
     <div class="flex-1 flex flex-wrap gap-4">
         {{ $slot }}
     </div>
-    
+
     <div class="flex items-center space-x-3 shrink-0">
         @if(isset($actions))
             {{ $actions }}

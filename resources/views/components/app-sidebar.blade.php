@@ -30,7 +30,7 @@
                         $isViewActive = request()->routeIs($route);
                     @endphp
                     <li>
-                        <a href="{{ Route::has($route) ? route($route) : '#' }}" 
+                        <a href="{{ Route::has($route) ? route($route) : '#' }}"
                            class="flex items-center px-6 py-3 transition-colors {{ $isViewActive ? 'bg-rutx-primary border-l-4 border-rutx-accent text-white' : 'text-white/75 hover:bg-white/10 hover:text-white border-l-4 border-transparent' }}">
                             <span class="text-sm font-medium">{{ $view['label'] }}</span>
                         </a>

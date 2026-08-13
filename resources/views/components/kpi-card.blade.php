@@ -15,10 +15,10 @@
             </div>
         @endif
     </div>
-    
+
     <div class="flex items-baseline space-x-2">
         <span class="text-[28px] font-bold text-rutx-text">{{ $value }}</span>
-        
+
         @if($delta)
             @php
                 $statusColor = match($status) {

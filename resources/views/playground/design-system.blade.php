@@ -12,42 +12,42 @@
     <x-breadcrumb :paths="['Playground', 'Design System']" />
 
     <div class="space-y-8 mt-8">
-        
+
         <section>
             <h2 class="text-xl font-bold text-rutx-text mb-4 border-b border-rutx-border pb-2">1. KPI Cards</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <x-kpi-card 
-                    title="Venta del Día" 
-                    value="$12,450.00" 
-                    delta="+5.2%" 
-                    status="success" 
+                <x-kpi-card
+                    title="Venta del Día"
+                    value="$12,450.00"
+                    delta="+5.2%"
+                    status="success"
                     icon="🛒" />
-                    
-                <x-kpi-card 
-                    title="Clientes Visitados" 
-                    value="42 / 50" 
-                    delta="-2" 
-                    status="warning" 
+
+                <x-kpi-card
+                    title="Clientes Visitados"
+                    value="42 / 50"
+                    delta="-2"
+                    status="warning"
                     icon="👥" />
-                    
-                <x-kpi-card 
-                    title="Devoluciones" 
-                    value="3" 
-                    delta="Alerta" 
-                    status="error" 
+
+                <x-kpi-card
+                    title="Devoluciones"
+                    value="3"
+                    delta="Alerta"
+                    status="error"
                     icon="⚠️" />
-                    
-                <x-kpi-card 
-                    title="Efectividad" 
-                    value="84%" 
-                    status="unknown" 
+
+                <x-kpi-card
+                    title="Efectividad"
+                    value="84%"
+                    status="unknown"
                     icon="📊" />
             </div>
         </section>
 
         <section>
             <h2 class="text-xl font-bold text-rutx-text mb-4 border-b border-rutx-border pb-2">2. Filter Bar & Alerts</h2>
-            
+
             <x-alert type="warning" message="Atención: Esta es una alerta de prueba. Por favor revise los parámetros de configuración." />
             <div class="h-4"></div>
             <x-alert type="error" message="Error de conexión con el Sincronizador." />
@@ -76,7 +76,7 @@
 
         <section>
             <h2 class="text-xl font-bold text-rutx-text mb-4 border-b border-rutx-border pb-2">3. Data Table & Badges</h2>
-            
+
             @php
                 $dummyData = [
                     ['id' => '1001', 'cliente' => 'Cliente de ejemplo A', 'ruta' => 'Norte', 'monto' => 4500.50, 'estado' => 'success', 'estadoLabel' => 'Activo'],
@@ -102,7 +102,7 @@
                         </tr>
                     @endforeach
                 </x-slot:row>
-                
+
                 <x-slot:pagination>
                     <div class="flex justify-between items-center text-sm text-rutx-text-muted">
                         <span>Mostrando 1 a 4 de 4 registros</span>
@@ -113,13 +113,13 @@
                     </div>
                 </x-slot:pagination>
             </x-data-table>
-            
+
             <div class="mt-8">
                 <h3 class="text-sm font-bold text-rutx-text-muted mb-2">Estado Vacío</h3>
                 <x-data-table :headers="['Documento', 'Fecha', 'Referencia', 'Importe']" :items="[]" />
             </div>
         </section>
-        
+
         <section>
             <h2 class="text-xl font-bold text-rutx-text mb-4 border-b border-rutx-border pb-2">4. Loading State</h2>
             <div class="bg-rutx-surface border border-rutx-border rounded-lg min-h-[300px] flex items-center justify-center relative">
