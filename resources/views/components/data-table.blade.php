@@ -13,13 +13,11 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($items as $item)
-                    <tr class="border-b border-rutx-border hover:bg-rutx-secondary/10 transition-colors {{ $loop->even ? 'bg-rutx-surface-grey' : 'bg-rutx-surface' }}">
-                        @if(isset($row))
-                            {{ $row($item) }}
-                        @endif
-                    </tr>
-                @empty
+                @if(isset($items) && count($items) > 0)
+                    @if(isset($row))
+                        {{ $row }}
+                    @endif
+                @else
                     <tr>
                         <td colspan="{{ count($headers) ?: 1 }}" class="px-4 py-12 text-center text-rutx-text-muted">
                             @if(isset($empty))
@@ -32,7 +30,7 @@
                             @endif
                         </td>
                     </tr>
-                @endforelse
+                @endif
             </tbody>
             @if(isset($footer))
                 <tfoot class="bg-rutx-accent-light font-bold">
