@@ -35,4 +35,26 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | API web del Sincronizador (única frontera de RutX Web)
+    |--------------------------------------------------------------------------
+    |
+    | Contrato exclusivo de oficina: /api/v2/web/* (ver Docs/Contrato y
+    | Nomenclatura). El web jamás consume /api/v1/* ni /api/v2/admin/*.
+    | Los valores se leen de variables de entorno (API_WEB_*); nunca se
+    | versionan hosts internos ni CLIENT_SECRET.
+    |
+    */
+
+    'api_web' => [
+        'base_url' => env('API_WEB_BASE_URL'),
+        'auth_url' => env('API_WEB_AUTH_URL', env('API_WEB_BASE_URL')),
+        'timeout' => (int) env('API_WEB_TIMEOUT', 10),
+        'connect_timeout' => (int) env('API_WEB_CONNECT_TIMEOUT', 5),
+        'verify_tls' => (bool) env('API_WEB_VERIFY_TLS', true),
+        'client_id' => env('API_WEB_CLIENT_ID'),
+        'client_secret' => env('API_WEB_CLIENT_SECRET'),
+    ],
+
 ];

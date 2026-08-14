@@ -73,6 +73,13 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'api_errors' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/api_errors.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'replace_placeholders' => true,
+        ],
+
         'monthly' => [
             'driver' => 'monthly',
             'path' => storage_path('logs/laravel.log'),
