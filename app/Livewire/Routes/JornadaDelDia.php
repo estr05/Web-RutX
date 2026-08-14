@@ -86,9 +86,12 @@ class JornadaDelDia extends Component
 
         if ($validator->fails()) {
             $this->dispatch('rutx:feedback', Feedback::error('Revisa los filtros de la jornada.'));
+            $this->resetErrorBag($validator->errors()->getMessages());
 
             return;
         }
+
+        $this->resetErrorBag();
     }
 
     /**
