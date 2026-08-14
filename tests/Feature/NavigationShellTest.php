@@ -10,17 +10,29 @@ use Tests\TestCase;
 /**
  * NavigationShellTest
  *
- * Verifica que el chasis de navegación del Día 2 funciona correctamente:
+ * Verifica que el chasis de navegación funciona correctamente:
  * - Ruta activa → módulo activo → sidebar filtrado → breadcrumb.
  * - Recorrido: Clientes → Venta → Ruta.
- * - La entrada inicial es Venta · Reportes y Gráficas.
+ * - La entrada inicial es Venta · Reportes y Gráficas (venta.reportes).
  * - config/navigation.php no depende de closures ni helpers de request (compatible con config:cache).
+ * - Los módulos de negocio van protegidos por auth.session, así que las vistas
+ *   se prueban con un token de sesión cifrada.
  *
- * Conteos de configuración (Día 2):
- *   6 módulos · 30 vistas totales (2+3+3+15+4+3)
+ * Conteos de configuración (Sprint 3 · Etapa 2):
+ *   6 módulos · 16 vistas totales (2+3+3+3+2+3)
  */
 class NavigationShellTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // venta.reportes ya renderiza el componente Livewire de Reportes y
+        // Gráficas: modo stub para que el render del chasis no intente
+        // llamadas HTTP reales durante las pruebas de navegación.
+        config()->set('services.api_web.stubs_enabled', true);
+    }
+
     // -------------------------------------------------------------------------
     // config/navigation.php — seguro para config:cache
     // -------------------------------------------------------------------------
@@ -51,27 +63,29 @@ class NavigationShellTest extends TestCase
         $this->assertCount(6, $modules, 'Deben existir exactamente 6 módulos en navigation config.');
     }
 
-    public function test_navigation_module_keys_are_in_english(): void
+    public function test_navigation_module_keys_match_route_prefixes(): void
     {
         $modules = config('navigation.modules', []);
         $keys = array_keys($modules);
 
-        $expectedKeys = ['customers', 'products', 'inventory', 'sales', 'routes', 'settings'];
-        $this->assertEqualsCanonicalizing($expectedKeys, $keys, 'Las claves de módulo deben estar en inglés.');
+        // Las claves siguen el prefijo de los nombres de ruta (las usa el sidebar
+        // con str_starts_with). Venta y Ruta usan los nombres de módulo del Sprint 3.
+        $expectedKeys = ['customers', 'products', 'inventory', 'venta', 'ruta', 'settings'];
+        $this->assertEqualsCanonicalizing($expectedKeys, $keys, 'Las claves de módulo deben coincidir con los prefijos de ruta.');
     }
 
-    public function test_sales_default_route_is_reports_graphics(): void
+    public function test_venta_default_route_is_reportes(): void
     {
-        $sales = config('navigation.modules.sales');
+        $venta = config('navigation.modules.venta');
 
         $this->assertSame(
-            'sales.reports-graphics',
-            $sales['default_route'],
-            'La entrada inicial del chasis debe ser sales.reports-graphics.',
+            'venta.reportes',
+            $venta['default_route'],
+            'La entrada inicial del chasis debe ser venta.reportes.',
         );
     }
 
-    public function test_navigation_config_has_exactly_thirty_views_total(): void
+    public function test_navigation_config_has_exactly_sixteen_views_total(): void
     {
         $modules = config('navigation.modules', []);
         $viewCount = array_sum(array_map(
@@ -79,8 +93,8 @@ class NavigationShellTest extends TestCase
             $modules,
         ));
 
-        // customers:2 + products:3 + inventory:3 + sales:15 + routes:4 + settings:3 = 30
-        $this->assertSame(30, $viewCount, 'La configuración de navegación debe declarar exactamente 30 vistas.');
+        // customers:2 + products:3 + inventory:3 + venta:3 + ruta:2 + settings:3 = 16
+        $this->assertSame(16, $viewCount, 'La configuración de navegación debe declarar exactamente 16 vistas.');
     }
 
     // -------------------------------------------------------------------------
@@ -114,11 +128,14 @@ class NavigationShellTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // Cobertura completa: Recorrer las 30 vistas declaradas
+    // Cobertura completa: Recorrer las 16 vistas declaradas (sesión autenticada)
     // -------------------------------------------------------------------------
 
     public function test_every_declared_view_renders_its_navigation_context(): void
     {
+        // Las rutas de módulo van protegidas por auth.session (Sprint 3).
+        $this->session(['api_token' => 'web-token-test']);
+
         foreach (config('navigation.modules', []) as $module) {
             foreach ($module['views'] as $routeName => $view) {
                 $response = $this->get(route($routeName));
@@ -130,11 +147,11 @@ class NavigationShellTest extends TestCase
         }
     }
 
-    public function test_entry_point_redirects_to_sales_reports_graphics(): void
+    public function test_entry_point_redirects_to_venta_reportes(): void
     {
         $response = $this->get('/');
 
-        $response->assertRedirect('/sales/reports-graphics');
+        $response->assertRedirect('/venta');
     }
 
     // -------------------------------------------------------------------------
@@ -143,7 +160,9 @@ class NavigationShellTest extends TestCase
 
     public function test_sidebar_renders_accessible_markup_and_icons(): void
     {
-        $response = $this->get(route('sales.reports-graphics'));
+        $this->session(['api_token' => 'web-token-test']);
+
+        $response = $this->get(route('venta.reportes'));
 
         $response->assertStatus(200);
         $response->assertSee('data-sidebar', false);
@@ -156,12 +175,14 @@ class NavigationShellTest extends TestCase
 
     public function test_sidebar_renders_icon_for_each_view_of_active_module(): void
     {
-        $sales = config('navigation.modules.sales.views');
+        $this->session(['api_token' => 'web-token-test']);
 
-        $response = $this->get(route('sales.reports-graphics'));
+        $venta = config('navigation.modules.venta.views');
+
+        $response = $this->get(route('venta.reportes'));
         $response->assertStatus(200);
 
-        foreach ($sales as $view) {
+        foreach ($venta as $view) {
             $expectedIcon = $view['icon'];
             $response->assertSee("data-navigation-icon=\"{$expectedIcon}\"", false);
         }

@@ -4,16 +4,17 @@
 
     Responsabilidades:
       - Mostrar marca RutX.
-      - Mostrar indicador de sincronización en estado neutral (sin ApiClient).
+      - Mostrar el indicador de sincronización (<x-sync-status>).
       - Listar las 6 pestañas de módulo leídas de config/navigation.php.
       - Marcar la pestaña activa con fondo rutx-primary-dark y subrayado
         de 3 px rutx-accent.
 
     Props: ninguna. El estado activo se deriva de route()->getName().
 
-    Día 2 — pill de sincronización en estado neutral.
-    La integración real (ApiClient, polling, estado "CONECTADO")
-    pertenece a la primera integración de API (Día 3+).
+    Sprint 3 · Etapa 7 — pill funcional vía <x-sync-status>.
+    Sin endpoint de salud en el contrato v2, la topbar la renderiza en estado
+    desconocido (SIN CONEXIÓN). Cuando exista integración del ApiClient con
+    polling del monitoreo, se le pasará :connected="$estadoReal".
 --}}
 <header
     class="h-[var(--rutx-height-topbar)] bg-rutx-primary flex items-center justify-between px-6 shadow-sm z-20 relative"
@@ -26,18 +27,8 @@
             RUTX
         </span>
 
-        {{-- Pill de sincronización — estado neutral (sin ApiClient en Día 2) --}}
-        <div
-            class="flex items-center gap-2 bg-white/10 rounded-full px-3 py-1 text-xs font-medium text-white/70"
-            aria-label="Estado de sincronización: no disponible"
-            title="El estado de sincronización estará disponible una vez integrado el ApiClient"
-        >
-            <span aria-hidden="true">⬡</span>
-            <span>Sincronización</span>
-            <span class="text-rutx-text-muted text-[10px] uppercase tracking-widest">
-                — pendiente
-            </span>
-        </div>
+        {{-- Pill de sincronización — estado neutral hasta la integración real (H-11) --}}
+        <x-sync-status connected="neutral" />
     </div>
 
     {{-- Navegación de módulos --}}

@@ -1,6 +1,6 @@
 # RutX Web — Guidelines de Desarrollo
 
-**Versión:** 1.5 · **Fecha:** 14 de agosto de 2026 · **Autor:** Manus AI  
+**Versión:** 1.6 · **Fecha:** 14 de agosto de 2026 · **Autor:** Manus AI  
 **Vigencia:** obligatorio para todo commit, pull request y release del módulo web RutX (oficina/administración).  
 **Ámbito:** Desarrollo y seguridad de RutX Web y su consumo servidor a servidor de `/api/v2/web/*`; excluye API móvil y el administrador local del Sincronizador.  
 **Relación documental:** [`Mapa_Documental_RutX_Web.md`](Mapa_Documental_RutX_Web.md) define el propósito de cada documento; el plan visual define la apariencia; el contrato v2 define datos y endpoints; este archivo define **cómo se construye y protege** el código.
@@ -173,6 +173,7 @@ Se usa **siempre** la lista del plan visual (`<x-data-table>`, `<x-kpi-card>`, `
 - **Regla del PR:** mínimo un revisor; checklist del §8 completado; ningún PR mergea con pipelines en rojo.
 - **Deprecación, no borrado:** un componente no se elimina mientras exista uso; se marca `@deprecated` y se elimina en el siguiente release mayor.
 - **Tests focalizados:** como no hay BD local, los tests se concentran en: validación de Form Requests, construcción de payloads del `ApiClient` (con mocking HTTP de Laravel), y renderizado de componentes clave (`assertSee` de arquetipos). Cobertura mínima sobre Services del 70 %; las vistas no requieren cobertura de comportamiento.
+- **Criterio de aceptación de arquetipos con JS:** todo componente Blade que incluya inicialización JavaScript propia (Chart.js, Leaflet, Alpine) **debe superar un test de re-render con `wire:poll` antes del merge a la rama de integración**. El test verifica que la inicialización es idempotente o re-disparable (el componente no lanza excepciones JS ni queda congelado tras el segundo render). En producción esto se valida vía el evento `rutx:refresh-*` capturado por el módulo JS; en el playground se acepta un `setInterval` Alpine equivalente. Precedente: H-01 (`<x-chart>`) y H-02 (`<x-map-view>`) detectaron el defecto en Sprint 3 por ausencia de esta regla.
 
 ---
 
