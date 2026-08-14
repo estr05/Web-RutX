@@ -16,8 +16,14 @@ use Tests\TestCase;
  * - config/navigation.php no depende de closures ni helpers de request
  *   (compatible con config:cache).
  *
- * Nota: Middleware auth.session no está activado en Día 2 (Día 5).
- * Las rutas scaffold son accesibles sin autenticación en esta fase.
+ * Conteos de configuración (Día 2):
+ *   6 módulos · 30 vistas totales (2+3+3+15+4+3) · 35 rutas Laravel
+ *   (30 de módulo + 1 raíz + 1 playground + 2 de storage/framework heredadas +
+ *    1 health-check up).
+ *
+ * Middleware auth.session se activa en Día 5.
+ * Las rutas scaffold están protegidas por guard de entorno: no se registran
+ * en producción hasta que auth.session esté activo.
  */
 class NavigationShellTest extends TestCase
 {
@@ -98,6 +104,18 @@ class NavigationShellTest extends TestCase
                 );
             }
         }
+    }
+
+    public function test_navigation_config_has_exactly_thirty_views_total(): void
+    {
+        $modules   = config('navigation.modules', []);
+        $viewCount = array_sum(array_map(
+            fn (array $m) => count($m['views']),
+            $modules,
+        ));
+
+        // customers:2 + products:3 + inventory:3 + sales:15 + routes:4 + settings:3 = 30
+        $this->assertSame(30, $viewCount, 'La configuración de navegación debe declarar exactamente 30 vistas.');
     }
 
     // -------------------------------------------------------------------------
@@ -199,5 +217,34 @@ class NavigationShellTest extends TestCase
 
         $intersection = array_intersect_key($sales, $customers);
         $this->assertEmpty($intersection, 'Las vistas de módulos distintos no deben solaparse.');
+    }
+
+    // -------------------------------------------------------------------------
+    // Sidebar — botón semántico con aria-expanded (sin checkbox peer)
+    // -------------------------------------------------------------------------
+
+    public function test_sidebar_renders_toggle_button_with_aria_expanded(): void
+    {
+        $response = $this->get(route('sales.reports-graphics'));
+
+        $response->assertStatus(200);
+        // El sidebar usa un <button> semántico, no un checkbox oculto
+        $response->assertSee('aria-expanded', false);
+        $response->assertSee('sidebar-toggle-btn', false);
+        $response->assertDontSee('sidebar-collapse-toggle', false);
+    }
+
+    // -------------------------------------------------------------------------
+    // Barrera de despliegue: rutas scaffold no se registran en producción
+    // -------------------------------------------------------------------------
+
+    public function test_scaffold_routes_are_registered_in_non_production_environment(): void
+    {
+        // APP_ENV=testing en phpunit.xml — las rutas deben estar registradas
+        $this->assertFalse(app()->isProduction(), 'Este test debe correr en entorno no productivo.');
+        $this->assertTrue(
+            \Illuminate\Support\Facades\Route::has('sales.reports-graphics'),
+            'Las rutas scaffold deben registrarse en entornos no productivos.',
+        );
     }
 }
