@@ -55,6 +55,10 @@ return [
         'verify_tls' => (bool) env('API_WEB_VERIFY_TLS', true),
         'client_id' => env('API_WEB_CLIENT_ID'),
         'client_secret' => env('API_WEB_CLIENT_SECRET'),
+        // Mientras el Sincronizador no publique los endpoints del contrato v2,
+        // los servicios de negocio devuelven stubs con la forma exacta de los
+        // DTO (ver @stub en App\Services\*). Desactivar al conectar los reales.
+        'stubs_enabled' => (bool) env('API_WEB_STUBS_ENABLED', false),
     ],
 
 ];
