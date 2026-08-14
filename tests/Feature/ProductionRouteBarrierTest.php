@@ -54,17 +54,12 @@ class ProductionRouteBarrierTest extends TestCase
 
     public function test_production_environment_returns_404_on_root_and_playground(): void
     {
-        $command = 'php -r "'.
-            'require \'vendor/autoload.php\'; '.
-            '$app = require \'bootstrap/app.php\'; '.
-            '$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class); '.
-            '$res1 = $kernel->handle(Illuminate\Http\Request::create(\'/\', \'GET\')); '.
-            '$res2 = $kernel->handle(Illuminate\Http\Request::create(\'/playground\', \'GET\')); '.
-            'echo \'ROOT:\' . $res1->getStatusCode() . \' PLAYGROUND:\' . $res2->getStatusCode();"';
-
         $process = Process::path(base_path())
             ->env(['APP_ENV' => 'production'])
-            ->run($command);
+            ->run([
+                PHP_BINARY,
+                base_path('tests/Fixtures/production-route-barrier.php'),
+            ]);
 
         $this->assertTrue(
             $process->successful(),
