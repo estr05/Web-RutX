@@ -5,7 +5,10 @@
     Sin datos ni cálculos: todo viene de las propiedades computadas del
     componente ($zones, $filteredRoutes, $sideKpis, $markers).
 --}}
-<div wire:poll.{{ $pollInterval }}s class="flex gap-6">
+<div wire:poll.{{ $pollInterval }}s>
+    <x-breadcrumb />
+
+    <div class="flex gap-6">
     {{-- Panel lateral colapsable con KPIs de ruta (solo en el DOM si está abierto) --}}
     @if ($sidePanelOpen)
         <aside
@@ -99,5 +102,5 @@
             :markers="$this->markers"
             height="520px"
         />
-    </div>
-</div>
+    </div>{{-- .flex --}}
+</div>{{-- wire:poll --}}
