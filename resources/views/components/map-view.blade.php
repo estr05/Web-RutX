@@ -23,7 +23,11 @@
     'zoom' => 12,
 ])
 
-<div class="bg-rutx-surface border border-rutx-border rounded-lg overflow-hidden shadow-[var(--rutx-shadow-base)]">
+<div
+    class="bg-rutx-surface border border-rutx-border rounded-lg overflow-hidden shadow-[var(--rutx-shadow-base)]"
+    x-data
+    x-init="$nextTick(() => $dispatch('rutx:refresh-maps'))"
+>
     <div
         id="{{ $id }}"
         data-rutx-map

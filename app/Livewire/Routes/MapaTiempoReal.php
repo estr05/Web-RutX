@@ -184,6 +184,15 @@ class MapaTiempoReal extends Component
         }
 
         $this->resetErrorBag();
+        $this->refreshMap();
+    }
+
+    /**
+     * Despacha el evento JS para actualizar los marcadores del mapa (guidelines §4).
+     */
+    public function refreshMap(): void
+    {
+        $this->dispatch('rutx:refresh-maps');
     }
 
     /**

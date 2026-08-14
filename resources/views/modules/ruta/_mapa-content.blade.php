@@ -1,7 +1,7 @@
 {{--
     Contenido de Ruta · Mapa en Tiempo Real (render del componente Livewire).
-    Rompe la anatomía estándar (Plan Visual §2.4): el mapa ocupa el papel
-    principal y los KPIs van en un panel lateral colapsable ($sidePanelOpen).
+    Anatomía estándar (Plan Visual §2.4): breadcrumb → header → filtros → mapa.
+    El mapa ocupa el papel principal y los KPIs van en un panel lateral colapsable ($sidePanelOpen).
     Sin datos ni cálculos: todo viene de las propiedades computadas del
     componente ($zones, $filteredRoutes, $sideKpis, $markers).
 --}}
