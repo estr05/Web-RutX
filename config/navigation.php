@@ -1,204 +1,225 @@
 <?php
 
+/**
+ * Fuente única de navegación de RutX Web.
+ *
+ * Este archivo es la única lista de módulos y vistas permitida.
+ * - Las claves de módulo y ruta son técnicas (inglés).
+ * - Las etiquetas 'label' son UI y van en español de México.
+ * - No contiene closures, helpers de request ni URLs resueltas con route():
+ *   es seguro para config:cache.
+ * - El campo 'permission' es declarativo; los nombres definitivos de claims
+ *   se alinearán con Docs/CONTRATOS_WEB_V2.md cuando llegue autenticación.
+ *   Ocultar elementos NO reemplaza la autorización de rutas y API.
+ *
+ * Día 2 — scaffold sin endpoint v2.
+ */
 return [
     'modules' => [
-        'cliente' => [
+
+        'customers' => [
             'label' => 'Cliente',
             'icon' => 'user-group',
-            'permission' => 'module.cliente.access',
-            'default_route' => 'cliente.index',
+            'permission' => 'module.customers.access', // pendiente catálogo de permisos v2
+            'default_route' => 'customers.index',
             'views' => [
-                'cliente.index' => [
+                'customers.index' => [
                     'label' => 'Clientes',
                     'icon' => 'users',
-                    'permission' => 'cliente.read',
+                    'permission' => 'customers.read',
                 ],
-                'cliente.traspaso' => [
+                'customers.transfer' => [
                     'label' => 'Traspaso de cliente',
                     'icon' => 'arrows-right-left',
-                    'permission' => 'cliente.transfer',
+                    'permission' => 'customers.transfer',
                 ],
             ],
         ],
-        'producto' => [
+
+        'products' => [
             'label' => 'Producto',
             'icon' => 'cube',
-            'permission' => 'module.producto.access',
-            'default_route' => 'producto.index',
+            'permission' => 'module.products.access',
+            'default_route' => 'products.index',
             'views' => [
-                'producto.index' => [
+                'products.index' => [
                     'label' => 'Productos',
                     'icon' => 'cube',
-                    'permission' => 'producto.read',
+                    'permission' => 'products.read',
                 ],
-                'producto.precios' => [
+                'products.prices' => [
                     'label' => 'Listas de precio',
                     'icon' => 'currency-dollar',
-                    'permission' => 'producto.price.read',
+                    'permission' => 'products.price.read',
                 ],
-                'producto.precios_zona' => [
+                'products.zone-prices' => [
                     'label' => 'Precios por zona',
                     'icon' => 'map-pin',
-                    'permission' => 'producto.price.read',
+                    'permission' => 'products.price.read',
                 ],
             ],
         ],
-        'inventario' => [
+
+        'inventory' => [
             'label' => 'Inventario',
             'icon' => 'archive-box',
-            'permission' => 'module.inventario.access',
-            'default_route' => 'inventario.ruta',
+            'permission' => 'module.inventory.access',
+            'default_route' => 'inventory.routes',
             'views' => [
-                'inventario.ruta' => [
+                'inventory.routes' => [
                     'label' => 'Inventario por ruta',
                     'icon' => 'truck',
-                    'permission' => 'inventario.read',
+                    'permission' => 'inventory.read',
                 ],
-                'inventario.rechazados' => [
+                'inventory.rejected' => [
                     'label' => 'Productos rechazados',
                     'icon' => 'x-circle',
-                    'permission' => 'inventario.read',
+                    'permission' => 'inventory.read',
                 ],
-                'inventario.mermas' => [
+                'inventory.shrinkage' => [
                     'label' => 'Mermas',
                     'icon' => 'trash',
-                    'permission' => 'inventario.read',
+                    'permission' => 'inventory.read',
                 ],
             ],
         ],
-        'venta' => [
+
+        'sales' => [
             'label' => 'Venta',
             'icon' => 'shopping-cart',
-            'permission' => 'module.venta.access',
-            'default_route' => 'venta.reportes',
+            'permission' => 'module.sales.access',
+            'default_route' => 'sales.reports-graphics', // entrada inicial del chasis
             'views' => [
-                'venta.levantamiento' => [
-                    'label' => 'Levantamiento',
-                    'icon' => 'document-plus',
-                    'permission' => 'venta.read',
-                ],
-                'venta.pedidos' => [
-                    'label' => 'Pedidos',
-                    'icon' => 'document-text',
-                    'permission' => 'venta.read',
-                ],
-                'venta.cobranza' => [
-                    'label' => 'Cobranza',
-                    'icon' => 'banknotes',
-                    'permission' => 'venta.read',
-                ],
-                'venta.utilidad' => [
-                    'label' => 'Utilidad',
-                    'icon' => 'presentation-chart-line',
-                    'permission' => 'venta.read',
-                ],
-                'venta.deposito' => [
-                    'label' => 'Depósito Venta',
-                    'icon' => 'arrow-down-tray',
-                    'permission' => 'venta.read',
-                ],
-                'venta.gasto' => [
-                    'label' => 'Nuevo Gasto Operativo',
-                    'icon' => 'receipt-percent',
-                    'permission' => 'venta.read',
-                ],
-                'venta.reporte_cliente' => [
-                    'label' => 'Reporte de Ventas por Cliente',
-                    'icon' => 'chart-pie',
-                    'permission' => 'reports.read',
-                ],
-                'venta.rentabilidad' => [
-                    'label' => 'Reporte Rentabilidad por Ruta',
-                    'icon' => 'chart-bar',
-                    'permission' => 'reports.read',
-                ],
-                'venta.mayor_venta' => [
-                    'label' => 'Clientes con Mayor Venta',
-                    'icon' => 'star',
-                    'permission' => 'reports.read',
-                ],
-                'venta.productos_rechazados' => [
-                    'label' => 'Productos Rechazados',
-                    'icon' => 'x-mark',
-                    'permission' => 'reports.read',
-                ],
-                'venta.preventa' => [
-                    'label' => 'Reporte Preventa Entrega',
-                    'icon' => 'clipboard-document-check',
-                    'permission' => 'reports.read',
-                ],
-                'venta.clientes_pendientes' => [
-                    'label' => 'Clientes Pendientes',
-                    'icon' => 'clock',
-                    'permission' => 'reports.read',
-                ],
-                'venta.visor' => [
-                    'label' => 'Visor',
-                    'icon' => 'eye',
-                    'permission' => 'venta.read',
-                ],
-                'venta.reportes' => [
+                'sales.reports-graphics' => [
                     'label' => 'Reportes y Gráficas',
                     'icon' => 'chart-pie',
                     'permission' => 'reports.read',
                 ],
-                'venta.globales' => [
+                'sales.global-reports' => [
                     'label' => 'Reportes Globales',
                     'icon' => 'globe-americas',
                     'permission' => 'reports.read',
                 ],
+                'sales.survey' => [
+                    'label' => 'Levantamiento',
+                    'icon' => 'document-plus',
+                    'permission' => 'sales.read',
+                ],
+                'sales.orders' => [
+                    'label' => 'Pedidos',
+                    'icon' => 'document-text',
+                    'permission' => 'sales.read',
+                ],
+                'sales.collections' => [
+                    'label' => 'Cobranza',
+                    'icon' => 'banknotes',
+                    'permission' => 'sales.read',
+                ],
+                'sales.profitability' => [
+                    'label' => 'Utilidad',
+                    'icon' => 'presentation-chart-line',
+                    'permission' => 'sales.read',
+                ],
+                'sales.deposit' => [
+                    'label' => 'Depósito Venta',
+                    'icon' => 'arrow-down-tray',
+                    'permission' => 'sales.read',
+                ],
+                'sales.expense' => [
+                    'label' => 'Nuevo Gasto Operativo',
+                    'icon' => 'receipt-percent',
+                    'permission' => 'sales.read',
+                ],
+                'sales.customer-report' => [
+                    'label' => 'Reporte de Ventas por Cliente',
+                    'icon' => 'chart-pie',
+                    'permission' => 'reports.read',
+                ],
+                'sales.profitability-route' => [
+                    'label' => 'Reporte Rentabilidad por Ruta',
+                    'icon' => 'chart-bar',
+                    'permission' => 'reports.read',
+                ],
+                'sales.top-customers' => [
+                    'label' => 'Clientes con Mayor Venta',
+                    'icon' => 'star',
+                    'permission' => 'reports.read',
+                ],
+                'sales.rejected-products' => [
+                    'label' => 'Productos Rechazados',
+                    'icon' => 'x-mark',
+                    'permission' => 'reports.read',
+                ],
+                'sales.pre-delivery' => [
+                    'label' => 'Reporte Preventa Entrega',
+                    'icon' => 'clipboard-document-check',
+                    'permission' => 'reports.read',
+                ],
+                'sales.pending-customers' => [
+                    'label' => 'Clientes Pendientes',
+                    'icon' => 'clock',
+                    'permission' => 'reports.read',
+                ],
+                'sales.viewer' => [
+                    'label' => 'Visor',
+                    'icon' => 'eye',
+                    'permission' => 'sales.read',
+                ],
             ],
         ],
-        'ruta' => [
+
+        'routes' => [
             'label' => 'Ruta',
             'icon' => 'truck',
-            'permission' => 'module.ruta.access',
-            'default_route' => 'ruta.mapa',
+            'permission' => 'module.routes.access',
+            'default_route' => 'routes.map',
             'views' => [
-                'ruta.mapa' => [
+                'routes.map' => [
                     'label' => 'Mapa en tiempo real',
                     'icon' => 'map',
-                    'permission' => 'route.monitor',
+                    'permission' => 'routes.monitor',
                 ],
-                'ruta.jornada' => [
+                'routes.workday' => [
                     'label' => 'Jornada del día',
                     'icon' => 'sun',
-                    'permission' => 'route.monitor',
+                    'permission' => 'routes.monitor',
                 ],
-                'ruta.agenda' => [
+                'routes.agenda' => [
                     'label' => 'Agenda',
                     'icon' => 'calendar-days',
-                    'permission' => 'agenda.read',
+                    'permission' => 'agenda.read', // pendiente catálogo v2; sprint posterior
                 ],
-                'ruta.kilometraje' => [
+                'routes.mileage' => [
                     'label' => 'Kilometraje',
                     'icon' => 'forward',
-                    'permission' => 'route.monitor',
+                    'permission' => 'routes.monitor',
                 ],
             ],
         ],
-        'configuracion' => [
+
+        'settings' => [
             'label' => 'Configuración',
             'icon' => 'cog-6-tooth',
-            'permission' => 'module.configuracion.access',
-            'default_route' => 'configuracion.usuarios',
+            'permission' => 'module.settings.access',
+            'default_route' => 'settings.users',
             'views' => [
-                'configuracion.usuarios' => [
+                'settings.users' => [
                     'label' => 'Usuarios',
                     'icon' => 'users',
                     'permission' => 'config.users.read',
                 ],
-                'configuracion.roles' => [
+                'settings.roles' => [
                     'label' => 'Roles',
                     'icon' => 'shield-check',
                     'permission' => 'config.roles.read',
                 ],
-                'configuracion.zonas' => [
+                'settings.zones' => [
                     'label' => 'Zonas',
                     'icon' => 'map',
                     'permission' => 'config.zones.read',
                 ],
             ],
         ],
+
     ],
 ];
