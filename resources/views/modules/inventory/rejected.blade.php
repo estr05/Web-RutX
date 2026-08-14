@@ -1,2 +1,2 @@
 {{-- Productos rechazados — scaffold Día 2, sin endpoint v2 --}}
-<x-module-scaffold module-label="Inventario" view-label="Productos rechazados" />
+<x-module-scaffold />

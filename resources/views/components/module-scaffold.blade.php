@@ -2,39 +2,35 @@
     <x-module-scaffold>
     Plantilla scaffold reutilizable para todas las vistas de módulo.
 
-    Props (todas opcionales — se derivan automáticamente desde config/navigation.php):
-      @prop string|null $moduleLabel  Etiqueta del módulo. Si es null, se deriva del nombre de ruta.
-      @prop string|null $viewLabel    Etiqueta de la vista. Si es null, se deriva del nombre de ruta.
-      @prop string      $note         Nota para el desarrollador sobre el estado scaffold.
+    Props:
+      @prop string $note  Nota opcional para el desarrollador sobre el estado scaffold.
 
-    El componente resuelve moduleLabel y viewLabel desde la misma fuente que
-    breadcrumb y topbar (config/navigation.php), eliminando la posibilidad de
-    divergencia entre la UI y la configuración central.
+    Etiquetas de módulo y vista:
+      - Resueltas EXCLUSIVAMENTE desde config/navigation.php mediante la ruta actual
+        (Route::currentRouteName()).
+      - Elimina la posibilidad de duplicación o divergencia entre vistas y configuración.
 
     Día 2 — scaffold sin endpoint v2.
     No contiene datos falsos, filtros simulados ni llamadas HTTP.
 --}}
 @props([
-    'moduleLabel' => null,
-    'viewLabel'   => null,
-    'note'        => 'Esta pantalla es un scaffold del Día 2. El contenido funcional se conecta en sprints posteriores mediante /api/v2/web/*.',
+    'note' => 'Esta pantalla es un scaffold del Día 2. El contenido funcional se conecta en sprints posteriores mediante /api/v2/web/*.',
 ])
 
 @php
-    // Derivar etiquetas desde config/navigation.php si no se proporcionaron
-    if ($moduleLabel === null || $viewLabel === null) {
-        $currentRoute = Route::currentRouteName() ?? '';
-        foreach (config('navigation.modules', []) as $moduleKey => $module) {
-            if (! str_starts_with($currentRoute, $moduleKey . '.')) {
-                continue;
-            }
-            $moduleLabel ??= $module['label'];
-            $viewLabel   ??= $module['views'][$currentRoute]['label'] ?? '';
-            break;
+    $currentRoute = Route::currentRouteName() ?? '';
+    $moduleLabel  = '';
+    $viewLabel    = '';
+
+    foreach (config('navigation.modules', []) as $moduleKey => $module) {
+        if (! str_starts_with($currentRoute, $moduleKey . '.')) {
+            continue;
         }
+
+        $moduleLabel = $module['label'];
+        $viewLabel   = $module['views'][$currentRoute]['label'] ?? '';
+        break;
     }
-    $moduleLabel ??= '';
-    $viewLabel   ??= '';
 @endphp
 
 <x-app-layout>

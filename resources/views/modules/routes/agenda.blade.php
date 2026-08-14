@@ -1,11 +1,4 @@
-{{--
-    Agenda — scaffold Día 2, sin endpoint v2.
-    La funcionalidad de Agenda (BD complementaria, endpoints específicos,
-    schedule_version, idempotencia y control de concurrencia) se implementa
-    en un sprint posterior.
---}}
+{{-- Agenda — scaffold Día 2, sin endpoint v2 --}}
 <x-module-scaffold
-    module-label="Ruta"
-    view-label="Agenda"
-    note="Agenda es scaffold del Día 2. La implementación funcional requiere BD complementaria, endpoints de asignación, schedule_version e idempotencia (sprint posterior)."
+    note="La Agenda funcional requiere contrato, versionado de schedule, idempotencia y almacenamiento complementario; se implementa en un sprint posterior."
 />

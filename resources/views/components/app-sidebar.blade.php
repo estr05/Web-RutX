@@ -8,16 +8,10 @@
       - Vista activa: fondo rutx-primary-dark + borde izquierdo 4 px rutx-accent.
       - Colapso a 64 px (4rem) con botón semántico de 48 × 48 px, aria-expanded
         y gestión de foco por teclado.
+      - Cada enlace muestra su icono local mediante <x-navigation-icon>.
 
     Props: ninguna. El estado activo se deriva de route()->getName().
-
-    Mecanismo de colapso:
-      - Un <button> real (no <label>) con onclick mínimo (sin persistencia).
-      - data-collapsed="false" / "true" en <aside>.
-      - Clases Tailwind 4 con group/sidebar + group-data-[collapsed=true]/sidebar:*
-        para que los descendientes respondan al estado del ancestro.
-
-    Día 2 — sin datos, sin llamadas API.
+    Mecanismo de colapso: controlado por JS en resources/js/app.js vía data-sidebar.
 --}}
 @php
     $currentRoute = Route::currentRouteName() ?? '';
@@ -35,21 +29,18 @@
 
 <aside
     id="app-sidebar"
+    data-sidebar
+    data-collapsed="false"
     class="group/sidebar
            relative flex flex-col bg-rutx-primary-dark shadow-sm z-10 shrink-0
            w-64 data-[collapsed=true]:w-16
            transition-[width] duration-200 ease-in-out"
-    data-collapsed="false"
     aria-label="Navegación de módulo"
 >
-    {{--
-        Botón de colapso.
-        Tamaño visual: 2rem (32 px), con padding para alcanzar objetivo táctil ≥ 48 px.
-        El <button> semántico gestiona aria-expanded y responde a Enter/Space nativamente.
-    --}}
+    {{-- Botón de colapso --}}
     <button
-        id="sidebar-toggle-btn"
         type="button"
+        data-sidebar-toggle
         class="absolute -right-4 top-8
                flex items-center justify-center
                w-12 h-12 rounded-full
@@ -57,11 +48,10 @@
                text-white/60 hover:text-white hover:bg-rutx-primary
                transition-colors z-20
                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rutx-accent"
-        aria-expanded="true"
         aria-controls="app-sidebar"
+        aria-expanded="true"
         aria-label="Colapsar barra lateral"
     >
-        {{-- La flecha rota cuando el sidebar está colapsado --}}
         <svg
             class="w-4 h-4 transition-transform group-data-[collapsed=true]/sidebar:rotate-180"
             xmlns="http://www.w3.org/2000/svg"
@@ -76,7 +66,7 @@
     </button>
 
     @if($currentModule)
-        {{-- Cabecera del módulo — se oculta (opacity + sr-only) al colapsar --}}
+        {{-- Cabecera del módulo --}}
         <div class="h-[var(--rutx-height-topbar)] flex items-center px-6 border-b border-white/10 overflow-hidden">
             <h2
                 class="text-white font-bold tracking-wider uppercase text-sm whitespace-nowrap
@@ -101,7 +91,7 @@
                         <a
                             id="{{ $viewId }}"
                             href="{{ $href }}"
-                            class="flex items-center px-6 py-3 gap-3
+                            class="flex items-center px-5 py-3 gap-3
                                    border-l-4 min-h-[48px]
                                    transition-colors
                                    focus-visible:outline-none focus-visible:ring-2
@@ -112,7 +102,14 @@
                             aria-current="{{ $isViewActive ? 'page' : 'false' }}"
                             title="{{ $view['label'] }}"
                         >
-                            {{-- El texto se oculta vía sr-only al colapsar; el title proporciona tooltip --}}
+                            {{-- Icono local siempre visible --}}
+                            <x-navigation-icon
+                                :name="$view['icon']"
+                                class="w-5 h-5 shrink-0 text-current"
+                                aria-hidden="true"
+                            />
+
+                            {{-- El texto se oculta vía sr-only al colapsar --}}
                             <span
                                 class="text-sm font-medium whitespace-nowrap truncate
                                        group-data-[collapsed=true]/sidebar:sr-only"
@@ -132,27 +129,3 @@
         </div>
     @endif
 </aside>
-
-{{--
-    JS mínimo para gestionar el toggle del sidebar.
-    No persiste la preferencia (sin localStorage: requisito no aprobado en Día 2).
-    Actualiza: data-collapsed, aria-expanded y aria-label del botón.
---}}
-<script>
-(function () {
-    var btn     = document.getElementById('sidebar-toggle-btn');
-    var sidebar = document.getElementById('app-sidebar');
-    if (!btn || !sidebar) return;
-
-    btn.addEventListener('click', function () {
-        var collapsed = sidebar.dataset.collapsed === 'true';
-
-        sidebar.dataset.collapsed = collapsed ? 'false' : 'true';
-        btn.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
-        btn.setAttribute(
-            'aria-label',
-            collapsed ? 'Colapsar barra lateral' : 'Expandir barra lateral'
-        );
-    });
-}());
-</script>
