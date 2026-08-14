@@ -62,13 +62,30 @@ class ReportsServiceTest extends TestCase
     {
         config()->set('services.api_web.stubs_enabled', true);
 
-        $result = app(ReportsService::class)->comparison(['range' => 'mensual']);
+        $result = app(ReportsService::class)->salesComparison(['range' => 'mensual']);
 
         $this->assertTrue($result['success']);
         $this->assertSame('MXN', $result['data']['currency']);
         $this->assertSame('unknown', $result['data']['status']);
         $this->assertSame([], $result['data']['current']);
         $this->assertSame([], $result['data']['previous']);
+
+        Http::assertNothingSent();
+    }
+
+    public function test_stub_route_profitability_returns_contract_shape_without_http(): void
+    {
+        config()->set('services.api_web.stubs_enabled', true);
+
+        $result = app(ReportsService::class)->routeProfitability(['range' => 'mensual']);
+
+        $this->assertTrue($result['success']);
+        $this->assertSame('MXN', $result['data']['totals']['currency']);
+        $this->assertSame(0.00, $result['data']['totals']['sales_amount']);
+        $this->assertSame(0.00, $result['data']['totals']['expense_amount']);
+        $this->assertSame(0.00, $result['data']['totals']['profit_amount']);
+        $this->assertSame([], $result['data']['by_route']);
+        $this->assertSame('unknown', $result['data']['status']);
 
         Http::assertNothingSent();
     }
@@ -112,12 +129,33 @@ class ReportsServiceTest extends TestCase
             ]),
         ]);
 
-        $result = app(ReportsService::class)->comparison(['range' => 'semanal']);
+        $result = app(ReportsService::class)->salesComparison(['range' => 'semanal']);
 
         $this->assertTrue($result['success']);
         $this->assertCount(1, $result['data']['previous']);
 
         Http::assertSent(fn (Request $request) => str_starts_with($request->url(), self::BASE_URL.'/reports/sales-comparison'));
+    }
+
+    public function test_route_profitability_hits_endpoint_and_returns_data(): void
+    {
+        Http::fake([
+            '*/api/v2/web/reports/route-profitability*' => Http::response([
+                'data' => [
+                    'totals' => ['sales_amount' => 10000.0, 'expense_amount' => 2000.0, 'delivery_amount' => 500.0, 'cost_amount' => 6000.0, 'profit_amount' => 1500.0, 'currency' => 'MXN'],
+                    'by_route' => [['route_name' => 'Ruta Centro', 'sales_amount' => 10000.0, 'expense_amount' => 2000.0, 'delivery_amount' => 500.0, 'cost_amount' => 6000.0, 'profit_amount' => 1500.0]],
+                    'status' => 'ok',
+                ],
+                'trace_id' => '01J-profit-ok',
+            ]),
+        ]);
+
+        $result = app(ReportsService::class)->routeProfitability(['route_id' => 1]);
+
+        $this->assertTrue($result['success']);
+        $this->assertSame(1500, $result['data']['totals']['profit_amount']);
+
+        Http::assertSent(fn (Request $request) => str_starts_with($request->url(), self::BASE_URL.'/reports/route-profitability'));
     }
 
     // -------------------------------------------------------------------------
@@ -163,9 +201,36 @@ class ReportsServiceTest extends TestCase
             ], 500),
         ]);
 
-        $result = app(ReportsService::class)->comparison([]);
+        $result = app(ReportsService::class)->salesComparison([]);
 
         $this->assertFalse($result['success']);
         $this->assertSame('01J-report-500', $result['trace_id']);
+    }
+
+    public function test_route_profitability_500_logs_trace_id_in_api_errors_channel(): void
+    {
+        $logger = Mockery::mock();
+        $logger->shouldReceive('error')
+            ->once()
+            ->withArgs(function (string $message, array $context): bool {
+                return $message === 'ApiClient error'
+                    && $context['code'] === 'API_UNAVAILABLE'
+                    && $context['trace_id'] === '01J-profit-500';
+            });
+
+        Log::shouldReceive('channel')->with('api_errors')->once()->andReturn($logger);
+
+        Http::fake([
+            '*/api/v2/web/reports/route-profitability*' => Http::response([
+                'code' => 'SERVER_ERROR',
+                'message' => 'Error interno.',
+                'trace_id' => '01J-profit-500',
+            ], 500),
+        ]);
+
+        $result = app(ReportsService::class)->routeProfitability([]);
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('01J-profit-500', $result['trace_id']);
     }
 }

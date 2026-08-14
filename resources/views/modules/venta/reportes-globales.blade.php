@@ -1,4 +1,4 @@
-{{-- Reportes Globales (venta.globales) — Sprint 3 --}}
-<x-module-scaffold
-    note="Se conecta a /api/v2/web/reports/* (consolidado y comparativo) en una etapa posterior."
-/>
+{{-- Venta · Reportes Globales (venta.globales) — Sprint 3 --}}
+<x-app-layout>
+    <livewire:reports.reportes-globales />
+</x-app-layout>
