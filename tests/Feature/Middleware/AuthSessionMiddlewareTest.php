@@ -12,26 +12,14 @@ use Tests\TestCase;
  * AuthSessionMiddlewareTest
  *
  * Verifica el middleware `auth.session` (primera barrera de autenticación):
- * - Sin JWT web en sesión cifrada → redirección a login.
+ * - Sin JWT web en sesión cifrada → redirección a login (ruta real del
+ *   placeholder de autenticación registrada en routes/modules/auth.php).
  * - Con JWT web en sesión → la ruta protegida responde normalmente.
  * - El alias queda registrado para las rutas web (guidelines §1.2).
  */
 class AuthSessionMiddlewareTest extends TestCase
 {
     private const PROTECTED_URI = '/_test/auth-session-protected';
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        // Ruta de login temporal: el módulo de autenticación llega en una etapa posterior.
-        Route::get('/login', fn () => 'login page')->name('login');
-
-        // En pruebas, el nombre se fija después de añadir la ruta a la colección
-        // y no actualiza los name lookups; se refrescan para que route('login')
-        // resuelva dentro del middleware.
-        app('router')->getRoutes()->refreshNameLookups();
-    }
 
     public function test_guest_without_api_token_is_redirected_to_login(): void
     {

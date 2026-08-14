@@ -84,114 +84,44 @@ return [
             ],
         ],
 
-        'sales' => [
+        'venta' => [
             'label' => 'Venta',
             'icon' => 'shopping-cart',
-            'permission' => 'module.sales.access',
-            'default_route' => 'sales.reports-graphics', // entrada inicial del chasis
+            'permission' => 'module.venta.access',
+            'default_route' => 'venta.reportes', // entrada inicial del chasis
             'views' => [
-                'sales.reports-graphics' => [
+                'venta.reportes' => [
                     'label' => 'Reportes y Gráficas',
                     'icon' => 'chart-pie',
                     'permission' => 'reports.read',
                 ],
-                'sales.global-reports' => [
+                'venta.globales' => [
                     'label' => 'Reportes Globales',
                     'icon' => 'globe-americas',
                     'permission' => 'reports.read',
                 ],
-                'sales.survey' => [
-                    'label' => 'Levantamiento',
-                    'icon' => 'document-plus',
-                    'permission' => 'sales.read',
-                ],
-                'sales.orders' => [
-                    'label' => 'Pedidos',
-                    'icon' => 'document-text',
-                    'permission' => 'sales.read',
-                ],
-                'sales.collections' => [
-                    'label' => 'Cobranza',
-                    'icon' => 'banknotes',
-                    'permission' => 'sales.read',
-                ],
-                'sales.profitability' => [
-                    'label' => 'Utilidad',
-                    'icon' => 'presentation-chart-line',
-                    'permission' => 'sales.read',
-                ],
-                'sales.deposit' => [
-                    'label' => 'Depósito Venta',
-                    'icon' => 'arrow-down-tray',
-                    'permission' => 'sales.read',
-                ],
-                'sales.expense' => [
-                    'label' => 'Nuevo Gasto Operativo',
-                    'icon' => 'receipt-percent',
-                    'permission' => 'sales.read',
-                ],
-                'sales.customer-report' => [
-                    'label' => 'Reporte de Ventas por Cliente',
-                    'icon' => 'chart-pie',
-                    'permission' => 'reports.read',
-                ],
-                'sales.profitability-route' => [
-                    'label' => 'Reporte Rentabilidad por Ruta',
+                'venta.rentabilidad' => [
+                    'label' => 'Rentabilidad',
                     'icon' => 'chart-bar',
                     'permission' => 'reports.read',
-                ],
-                'sales.top-customers' => [
-                    'label' => 'Clientes con Mayor Venta',
-                    'icon' => 'star',
-                    'permission' => 'reports.read',
-                ],
-                'sales.rejected-products' => [
-                    'label' => 'Productos Rechazados',
-                    'icon' => 'x-mark',
-                    'permission' => 'reports.read',
-                ],
-                'sales.pre-delivery' => [
-                    'label' => 'Reporte Preventa Entrega',
-                    'icon' => 'clipboard-document-check',
-                    'permission' => 'reports.read',
-                ],
-                'sales.pending-customers' => [
-                    'label' => 'Clientes Pendientes',
-                    'icon' => 'clock',
-                    'permission' => 'reports.read',
-                ],
-                'sales.viewer' => [
-                    'label' => 'Visor',
-                    'icon' => 'eye',
-                    'permission' => 'sales.read',
                 ],
             ],
         ],
 
-        'routes' => [
+        'ruta' => [
             'label' => 'Ruta',
             'icon' => 'truck',
-            'permission' => 'module.routes.access',
-            'default_route' => 'routes.map',
+            'permission' => 'module.ruta.access',
+            'default_route' => 'ruta.mapa',
             'views' => [
-                'routes.map' => [
+                'ruta.mapa' => [
                     'label' => 'Mapa en tiempo real',
                     'icon' => 'map',
                     'permission' => 'routes.monitor',
                 ],
-                'routes.workday' => [
+                'ruta.jornada' => [
                     'label' => 'Jornada del día',
                     'icon' => 'sun',
-                    'permission' => 'routes.monitor',
-                ],
-                'routes.agenda' => [
-                    'label' => 'Agenda',
-                    'icon' => 'calendar-days',
-                    'permission' => 'agenda.read', // pendiente catálogo v2; sprint posterior
-                ],
-                'routes.mileage' => [
-                    'label' => 'Kilometraje',
-                    'icon' => 'forward',
                     'permission' => 'routes.monitor',
                 ],
             ],

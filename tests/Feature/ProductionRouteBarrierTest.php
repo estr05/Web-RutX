@@ -37,7 +37,10 @@ class ProductionRouteBarrierTest extends TestCase
         $routeNames = array_filter(array_column($routes, 'name'));
         $routeUris = array_column($routes, 'uri');
 
-        $disallowedPrefixes = ['customers.', 'products.', 'inventory.', 'sales.', 'routes.', 'settings.', 'playground'];
+        // Sprint 3 · Etapa 2: los módulos de negocio ahora son venta./ruta. y
+        // el resto de los scaffolds (customers/products/inventory/settings)
+        // y el playground se mantienen fuera de producción.
+        $disallowedPrefixes = ['customers.', 'products.', 'inventory.', 'venta.', 'ruta.', 'settings.', 'playground'];
 
         foreach ($routeNames as $name) {
             foreach ($disallowedPrefixes as $prefix) {
