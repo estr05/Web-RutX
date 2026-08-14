@@ -16,9 +16,10 @@
         <section>
             <h2 class="text-xl font-bold text-rutx-text mb-4 border-b border-rutx-border pb-2">1. KPI Cards</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {{-- value como float: kpi-card aplica Money::format internamente (H-04) --}}
                 <x-kpi-card
                     title="Venta del Día"
-                    value="$12,450.00"
+                    :value="12450.00"
                     delta="+5.2%"
                     status="success">
                     <x-slot name="icon">
@@ -142,29 +143,42 @@
         <section>
             <h2 class="text-xl font-bold text-rutx-text mb-4 border-b border-rutx-border pb-2">5. Gráficas (Chart.js)</h2>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <x-chart
-                    summary="Ventas de la semana actual y anterior"
-                    :labels="['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']"
-                    :datasets="[
-                        ['label' => 'Venta', 'data' => [1200, 1800, 1500, 2100, 2400, 1900, 2600]],
-                        ['label' => 'Semana anterior', 'data' => [1000, 1400, 1600, 1700, 2000, 2200, 2300]],
-                    ]"
-                />
+            {{--
+                Test de re-render / idempotencia (H-01 / guidelines §4):
+                Este div usa Alpine setInterval en lugar de wire:poll porque el
+                playground no es un componente Livewire. Cada 5 s despacha el
+                evento rutx:refresh-charts, que chart.js captura y re-inicializa
+                las gráficas de forma idempotente (WeakMap destruye + recrea).
+                En producción, Livewire dispara el mismo evento desde wire:poll.
+            --}}
+            <div
+                x-data
+                x-init="setInterval(() => $dispatch('rutx:refresh-charts'), 5000)"
+            >
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <x-chart
+                        summary="Ventas de la semana actual y anterior"
+                        :labels="['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']"
+                        :datasets="[
+                            ['label' => 'Venta', 'data' => [1200, 1800, 1500, 2100, 2400, 1900, 2600]],
+                            ['label' => 'Semana anterior', 'data' => [1000, 1400, 1600, 1700, 2000, 2200, 2300]],
+                        ]"
+                    />
 
-                <x-chart
-                    type="bar"
-                    summary="Piezas vendidas por día"
-                    :labels="['Lun', 'Mar', 'Mié', 'Jue', 'Vie']"
-                    :datasets="[
-                        ['label' => 'Piezas', 'data' => [32, 45, 38, 51, 60], 'colorToken' => '--rutx-chart-cyan'],
-                    ]"
-                />
-            </div>
+                    <x-chart
+                        type="bar"
+                        summary="Piezas vendidas por día"
+                        :labels="['Lun', 'Mar', 'Mié', 'Jue', 'Vie']"
+                        :datasets="[
+                            ['label' => 'Piezas', 'data' => [32, 45, 38, 51, 60], 'colorToken' => '--rutx-chart-cyan'],
+                        ]"
+                    />
+                </div>
 
-            <div class="mt-6">
-                <h3 class="text-sm font-bold text-rutx-text-muted mb-2">Estado vacío</h3>
-                <x-chart summary="Sin datos para el período seleccionado" :labels="[]" :datasets="[]" height="220" />
+                <div class="mt-6">
+                    <h3 class="text-sm font-bold text-rutx-text-muted mb-2">Estado vacío</h3>
+                    <x-chart summary="Sin datos para el período seleccionado" :labels="[]" :datasets="[]" height="220" />
+                </div>
             </div>
         </section>
 

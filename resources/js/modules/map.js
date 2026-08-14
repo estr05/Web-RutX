@@ -11,6 +11,11 @@ import 'leaflet/dist/leaflet.css';
  * HTML) para evitar XSS con labels remotos.
  *
  * Exporta rutxMap y routeMarker para uso programático futuro.
+ *
+ * rutxMap(containerId) es idempotente: si el mapa ya fue creado para ese
+ * id devuelve la instancia existente sin recrearla (evita el error
+ * "Map container is already initialized" de Leaflet en re-renders de
+ * Livewire). refreshRutxMaps() re-inicializa solo contenedores nuevos.
  */
 const STATUS_TOKENS = {
     active: '--rutx-status-success',
@@ -22,6 +27,15 @@ const STATUS_TOKENS = {
 const DEFAULT_CENTER = [20.6, -103.4];
 
 /**
+ * Map<string, L.Map> — registra instancias Leaflet por containerId.
+ * Clave: valor del atributo id del contenedor.
+ * Permite devolver la instancia existente sin llamar L.map() dos veces
+ * sobre el mismo div (Leaflet lanza error si el contenedor ya está
+ * inicializado). Resuelve H-02: re-render de wire:poll sin error.
+ */
+const instances = new Map();
+
+/**
  * Lee un token CSS desde :root (getComputedStyle).
  */
 function tokenValue(token) {
@@ -30,8 +44,20 @@ function tokenValue(token) {
 
 /**
  * Crea el mapa Leaflet con tiles de OpenStreetMap (sin CDN de librerías).
+ * Es idempotente: si ya existe una instancia para containerId la devuelve
+ * sin crear una nueva.
+ *
+ * @param {string} containerId  id del elemento contenedor del mapa.
+ * @param {{ center?: number[], zoom?: number }} opts Opciones de vista inicial.
+ * @returns {L.Map}
  */
 export function rutxMap(containerId, { center = DEFAULT_CENTER, zoom = 12 } = {}) {
+    // Idempotencia: devolver instancia existente para evitar
+    // "Map container is already initialized" de Leaflet.
+    if (instances.has(containerId)) {
+        return instances.get(containerId);
+    }
+
     const map = L.map(containerId, { zoomControl: true });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -40,6 +66,7 @@ export function rutxMap(containerId, { center = DEFAULT_CENTER, zoom = 12 } = {}
     }).addTo(map);
 
     map.setView(center, zoom);
+    instances.set(containerId, map);
 
     return map;
 }
@@ -83,12 +110,24 @@ function safeParse(raw, fallback) {
     }
 }
 
-function initMaps() {
+/**
+ * Re-inicializa todos los contenedores [data-rutx-map] del DOM.
+ * Los ya inicializados (en instances) se omiten; los nuevos se inicializan.
+ *
+ * @stub Polling documentado: guidelines §2.3. El re-render de Livewire crea
+ *       un div nuevo con el mismo id; rutxMap() devuelve la instancia
+ *       existente sin recrearla, evitando el error de Leaflet.
+ */
+export function refreshRutxMaps() {
     document.querySelectorAll('[data-rutx-map]').forEach((container) => {
+        if (!container.id) {
+            return;
+        }
+
         try {
             const markers = safeParse(container.dataset.markers, []);
-            const center = safeParse(container.dataset.center, DEFAULT_CENTER);
-            const zoom = Number(container.dataset.zoom ?? 12);
+            const center  = safeParse(container.dataset.center, DEFAULT_CENTER);
+            const zoom    = Number(container.dataset.zoom ?? 12);
 
             const map = rutxMap(container.id, { center, zoom });
 
@@ -105,10 +144,27 @@ function initMaps() {
     });
 }
 
+// ── Inicialización inicial ────────────────────────────────────────────────────────
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMaps, { once: true });
+    document.addEventListener('DOMContentLoaded', refreshRutxMaps, { once: true });
 } else {
-    initMaps();
+    refreshRutxMaps();
 }
+
+// ── Listeners para re-disparo tras polling / navegación Livewire ───────────
+
+/**
+ * Evento personalizado que Alpine/Livewire despacha cuando el DOM con mapas
+ * ha sido re-renderizado por un ciclo de wire:poll.
+ * En Blade: Alpine $dispatch('rutx:refresh-maps') desde x-init.
+ */
+document.addEventListener('rutx:refresh-maps', () => refreshRutxMaps());
+
+/**
+ * Livewire 3 dispara 'livewire:navigated' al terminar de actualizar el DOM.
+ * Re-inicializar por si la nueva página contiene mapas.
+ */
+document.addEventListener('livewire:navigated', () => refreshRutxMaps());
 
 export { L };

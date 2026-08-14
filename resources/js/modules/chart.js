@@ -15,6 +15,14 @@ import { Chart } from 'chart.js';
 const CHART_COLOR_TOKENS = ['--rutx-chart-blue', '--rutx-chart-cyan'];
 
 /**
+ * WeakMap<HTMLCanvasElement, Chart> — rastrea instancias activas.
+ * Permite destruir la instancia previa antes de re-crear sobre el mismo
+ * nodo (idempotencia en re-renders de Livewire). WeakMap evita retener
+ * referencias a nodos eliminados del DOM (sin memory leak).
+ */
+const chartInstances = new WeakMap();
+
+/**
  * Opciones base de Chart.js con la paleta centralizada de tokens.css.
  */
 export function rutxChartOptions() {
@@ -76,8 +84,21 @@ function safeParse(raw, fallback) {
     }
 }
 
-function initCharts() {
-    document.querySelectorAll('[data-rutx-chart]').forEach((canvas) => {
+/**
+ * Re-inicializa todas las gráficas dentro de root.
+ * Destruye la instancia Chart existente (vía WeakMap) antes de crear
+ * una nueva — idempotencia ante re-renders de wire:poll.
+ *
+ * @param {Document|HTMLElement} root Raíz de búsqueda (document por defecto).
+ */
+export function refreshRutxCharts(root = document) {
+    root.querySelectorAll('[data-rutx-chart]').forEach((canvas) => {
+        // Destruir instancia previa si el canvas ya fue inicializado.
+        if (chartInstances.has(canvas)) {
+            chartInstances.get(canvas).destroy();
+            chartInstances.delete(canvas);
+        }
+
         try {
             const datasets = safeParse(canvas.dataset.datasets, []).map((dataset, index) => (
                 buildLineDataset(
@@ -87,7 +108,7 @@ function initCharts() {
                 )
             ));
 
-            new Chart(canvas, {
+            const instance = new Chart(canvas, {
                 type: canvas.dataset.type ?? 'line',
                 data: {
                     labels: safeParse(canvas.dataset.labels, []),
@@ -95,10 +116,18 @@ function initCharts() {
                 },
                 options: rutxChartOptions(),
             });
+
+            // Registrar instancia para destrucción futura.
+            chartInstances.set(canvas, instance);
         } catch (error) {
             console.warn('No se pudo inicializar la gráfica de RutX.', error);
         }
     });
+}
+
+/** Alias interno para la inicialización inicial del DOM. */
+function initCharts() {
+    refreshRutxCharts();
 }
 
 if (document.readyState === 'loading') {
@@ -106,5 +135,18 @@ if (document.readyState === 'loading') {
 } else {
     initCharts();
 }
+
+/**
+ * Evento personalizado que Alpine/Livewire despacha cuando el DOM con
+ * gráficas ha sido re-renderizado por un ciclo de wire:poll.
+ * En Blade: @this.dispatchTo('…') o Alpine $dispatch('rutx:refresh-charts').
+ */
+document.addEventListener('rutx:refresh-charts', () => refreshRutxCharts());
+
+/**
+ * Livewire 3 dispara 'livewire:navigated' al terminar de actualizar el DOM
+ * en una navegación SPA. Re-inicializar por si la nueva página tiene gráficas.
+ */
+document.addEventListener('livewire:navigated', () => refreshRutxCharts());
 
 export { Chart };
