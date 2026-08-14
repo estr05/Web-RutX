@@ -1,4 +1,6 @@
 import './feedback';
+import './modules/chart';
+import './modules/map';
 
 // Lógica de toggle interactivo para la barra lateral (sidebar)
 document.addEventListener('DOMContentLoaded', () => {
