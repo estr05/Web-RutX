@@ -22,6 +22,10 @@ class ReportsService
 
     /**
      * GET /api/v2/web/reports/sales → SalesReportResponse (ventas, piezas y montos).
+     *
+     * Forma de data.by_route (agregados por ruta):
+     *   ['route_name' => string, 'pieces' => int, 'cash_amount' => float,
+     *    'credit_amount' => float, 'total_amount' => float]
      */
     public function report(array $filters): array
     {

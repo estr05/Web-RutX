@@ -23,6 +23,16 @@ use Tests\TestCase;
  */
 class NavigationShellTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // venta.reportes ya renderiza el componente Livewire de Reportes y
+        // Gráficas: modo stub para que el render del chasis no intente
+        // llamadas HTTP reales durante las pruebas de navegación.
+        config()->set('services.api_web.stubs_enabled', true);
+    }
+
     // -------------------------------------------------------------------------
     // config/navigation.php — seguro para config:cache
     // -------------------------------------------------------------------------
