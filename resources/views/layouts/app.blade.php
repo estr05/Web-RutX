@@ -24,5 +24,7 @@
             </main>
         </div>
     </div>
+
+    <x-feedback-stack />
 </body>
 </html>

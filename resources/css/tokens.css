@@ -13,9 +13,16 @@
   --rutx-text-muted: #6B7680;
   --rutx-border: #E0E0E0;
   --rutx-status-success: #2E7D32;
+  --rutx-status-info: #005691;
   --rutx-status-warning: #E65100;
   --rutx-status-error: #C62828;
   --rutx-status-unknown: #9E9E9E;
+
+  /* Fondos semánticos de feedback */
+  --rutx-alert-success-bg: #E8F5E9;
+  --rutx-alert-info-bg: #E3F2FD;
+  --rutx-alert-warning-bg: #FFF3E0;
+  --rutx-alert-error-bg: #FFEBEE;
 
   /* Subpaleta de Graficas */
   --rutx-chart-blue: #005691;
