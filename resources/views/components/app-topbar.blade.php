@@ -27,8 +27,8 @@
             RUTX
         </span>
 
-        {{-- Pill de sincronización — estado por defecto: SIN CONEXIÓN hasta la integración real --}}
-        <x-sync-status />
+        {{-- Pill de sincronización — estado neutral hasta la integración real (H-11) --}}
+        <x-sync-status connected="neutral" />
     </div>
 
     {{-- Navegación de módulos --}}
