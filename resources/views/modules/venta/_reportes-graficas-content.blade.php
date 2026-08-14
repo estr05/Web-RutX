@@ -17,27 +17,9 @@
         <x-filter-bar>
             <x-date-range :range="$range" />
 
-            <div>
-                <label for="reportes-date-from" class="block text-xs font-semibold text-rutx-text-muted mb-1">Desde</label>
-                <input
-                    id="reportes-date-from"
-                    type="date"
-                    wire:model="dateFrom"
-                    class="h-[var(--rutx-height-input)] border border-rutx-border rounded-lg bg-rutx-surface-grey px-3 text-sm
-                           focus:ring-2 focus:ring-rutx-primary focus:border-rutx-primary outline-none transition-shadow"
-                />
-            </div>
+            <x-date-input id="reportes-date-from" label="Desde" wire:model="dateFrom" />
 
-            <div>
-                <label for="reportes-date-to" class="block text-xs font-semibold text-rutx-text-muted mb-1">Hasta</label>
-                <input
-                    id="reportes-date-to"
-                    type="date"
-                    wire:model="dateTo"
-                    class="h-[var(--rutx-height-input)] border border-rutx-border rounded-lg bg-rutx-surface-grey px-3 text-sm
-                           focus:ring-2 focus:ring-rutx-primary focus:border-rutx-primary outline-none transition-shadow"
-                />
-            </div>
+            <x-date-input id="reportes-date-to" label="Hasta" wire:model="dateTo" />
 
             <x-slot:actions>
                 <button
@@ -65,7 +47,7 @@
         @foreach ($this->kpi as $card)
             <x-kpi-card
                 :title="$card['label']"
-                :value="\App\Support\Money::format((float) $card['value'])"
+                :value="(float) $card['value']"
                 :delta="$card['delta']"
                 :status="$card['status']"
             />
