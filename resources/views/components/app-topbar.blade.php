@@ -1,26 +1,67 @@
-<header class="h-[var(--rutx-height-topbar)] bg-rutx-primary flex items-center justify-between px-6 shadow-sm z-20 relative">
-    <div class="flex items-center space-x-6">
-        <!-- Logo -->
-        <div class="text-white font-bold text-xl tracking-wider">
+{{--
+    <x-app-topbar>
+    Barra superior de RutX Web.
+
+    Responsabilidades:
+      - Mostrar marca RutX.
+      - Mostrar indicador de sincronización en estado neutral (sin ApiClient).
+      - Listar las 6 pestañas de módulo leídas de config/navigation.php.
+      - Marcar la pestaña activa con fondo rutx-primary-dark y subrayado
+        de 3 px rutx-accent.
+
+    Props: ninguna. El estado activo se deriva de route()->getName().
+
+    Día 2 — pill de sincronización en estado neutral.
+    La integración real (ApiClient, polling, estado "CONECTADO")
+    pertenece a la primera integración de API (Día 3+).
+--}}
+<header
+    class="h-[var(--rutx-height-topbar)] bg-rutx-primary flex items-center justify-between px-6 shadow-sm z-20 relative"
+    role="banner"
+>
+    {{-- Izquierda: marca + pill de sincronización neutral --}}
+    <div class="flex items-center gap-5">
+        {{-- Marca --}}
+        <span class="text-white font-bold text-xl tracking-wider select-none" aria-label="RutX Web">
             RUTX
-        </div>
-        <!-- Sync Status Pill -->
-        <div class="flex items-center bg-white/10 rounded-full px-3 py-1 text-xs font-medium text-white space-x-2">
+        </span>
+
+        {{-- Pill de sincronización — estado neutral (sin ApiClient en Día 2) --}}
+        <div
+            class="flex items-center gap-2 bg-white/10 rounded-full px-3 py-1 text-xs font-medium text-white/70"
+            aria-label="Estado de sincronización: no disponible"
+            title="El estado de sincronización estará disponible una vez integrado el ApiClient"
+        >
+            <span aria-hidden="true">⬡</span>
             <span>Sincronización</span>
-            <span class="text-rutx-status-success">●</span>
-            <span>CONECTADO</span>
+            <span class="text-rutx-text-muted text-[10px] uppercase tracking-widest">
+                — pendiente
+            </span>
         </div>
     </div>
 
-    <!-- Modules Navigation -->
-    <nav class="flex h-full">
-        @foreach(config('navigation.modules', []) as $key => $module)
+    {{-- Navegación de módulos --}}
+    <nav class="flex h-full" aria-label="Módulos">
+        @php
+            $currentRoute = Route::currentRouteName() ?? '';
+        @endphp
+
+        @foreach(config('navigation.modules', []) as $moduleKey => $module)
             @php
-                // Logica basica para detectar el modulo activo (segun el prefijo de la ruta)
-                $isActive = request()->routeIs($key . '.*') || (isset($activeModule) && $activeModule === $key);
+                $isActive = str_starts_with($currentRoute, $moduleKey . '.');
+                $defaultRoute = $module['default_route'] ?? '';
+                $href = (Route::has($defaultRoute)) ? route($defaultRoute) : '#';
             @endphp
-            <a href="{{ Route::has($module['default_route'] ?? '') ? route($module['default_route']) : '#' }}"
-               class="flex items-center px-4 h-full transition-colors {{ $isActive ? 'text-white border-b-3 border-rutx-accent bg-rutx-primary-dark' : 'text-white/70 hover:text-white hover:bg-white/10' }}">
+
+            <a
+                href="{{ $href }}"
+                id="topbar-module-{{ $moduleKey }}"
+                class="flex items-center px-4 h-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rutx-accent focus-visible:ring-inset
+                    {{ $isActive
+                        ? 'text-white border-b-[3px] border-rutx-accent bg-rutx-primary-dark'
+                        : 'text-white/70 hover:text-white hover:bg-white/10 border-b-[3px] border-transparent' }}"
+                aria-current="{{ $isActive ? 'page' : 'false' }}"
+            >
                 <span class="text-sm font-medium">{{ $module['label'] }}</span>
             </a>
         @endforeach
