@@ -36,7 +36,44 @@ class RouteMonitorService
             return $this->resolve($this->api->get('/route-monitor', $filters));
         }
 
-        return ['success' => true, 'data' => []];
+        // @stub: tres rutas de fixture con posición numérica (zona de
+        // Guadalajara, centro del mapa) para que el mapa demuestre marcadores
+        // sin inventar ubicaciones en la vista.
+        return [
+            'success' => true,
+            'data' => [
+                [
+                    'route_id' => 1,
+                    'route_name' => 'Ruta Norte',
+                    'seller' => 'María Hernández',
+                    'last_sale' => ['at' => '2026-08-14T10:30:00-06:00'],
+                    'workday_started_at' => '2026-08-14T08:00:00-06:00',
+                    'latitude' => 20.663,
+                    'longitude' => -103.352,
+                    'status' => 'active',
+                ],
+                [
+                    'route_id' => 2,
+                    'route_name' => 'Ruta Sur',
+                    'seller' => 'Pedro López',
+                    'last_sale' => null,
+                    'workday_started_at' => '2026-08-14T08:15:00-06:00',
+                    'latitude' => 20.671,
+                    'longitude' => -103.391,
+                    'status' => 'delayed',
+                ],
+                [
+                    'route_id' => 3,
+                    'route_name' => 'Ruta Centro',
+                    'seller' => 'Ana Torres',
+                    'last_sale' => ['at' => '2026-08-14T11:05:00-06:00'],
+                    'workday_started_at' => '2026-08-14T08:00:00-06:00',
+                    'latitude' => 20.637,
+                    'longitude' => -103.425,
+                    'status' => 'stopped',
+                ],
+            ],
+        ];
     }
 
     /**
@@ -71,7 +108,16 @@ class RouteMonitorService
             return $this->resolve($this->api->get('/routes', $filters));
         }
 
-        return ['success' => true, 'data' => []];
+        // @stub: catálogo de las tres rutas del monitor, con su zona, para
+        // alimentar el filtro cascada zona → ruta.
+        return [
+            'success' => true,
+            'data' => [
+                ['route_id' => 1, 'route_name' => 'Ruta Norte', 'zone_id' => 1, 'zone_name' => 'Zona Norte', 'status' => 'active'],
+                ['route_id' => 2, 'route_name' => 'Ruta Sur', 'zone_id' => 2, 'zone_name' => 'Zona Sur', 'status' => 'active'],
+                ['route_id' => 3, 'route_name' => 'Ruta Centro', 'zone_id' => 1, 'zone_name' => 'Zona Norte', 'status' => 'active'],
+            ],
+        ];
     }
 
     /**

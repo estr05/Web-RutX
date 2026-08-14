@@ -49,7 +49,11 @@ class RouteMonitorServiceTest extends TestCase
         $result = app(RouteMonitorService::class)->monitor(['zone_id' => 1]);
 
         $this->assertTrue($result['success']);
-        $this->assertSame([], $result['data']);
+        $this->assertCount(3, $result['data']);
+        $this->assertIsFloat($result['data'][0]['latitude']);
+        $this->assertIsFloat($result['data'][0]['longitude']);
+        $this->assertArrayHasKey('route_id', $result['data'][0]);
+        $this->assertArrayHasKey('status', $result['data'][0]);
 
         Http::assertNothingSent();
     }
@@ -77,7 +81,10 @@ class RouteMonitorServiceTest extends TestCase
         $result = app(RouteMonitorService::class)->routes(['zone_id' => 1]);
 
         $this->assertTrue($result['success']);
-        $this->assertSame([], $result['data']);
+        $this->assertCount(3, $result['data']);
+        $this->assertArrayHasKey('route_id', $result['data'][0]);
+        $this->assertArrayHasKey('route_name', $result['data'][0]);
+        $this->assertArrayHasKey('zone_id', $result['data'][0]);
 
         Http::assertNothingSent();
     }
