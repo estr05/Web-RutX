@@ -13,6 +13,10 @@ use Tests\TestCase;
  * Verifica de forma aislada que en entorno de producción (APP_ENV=production):
  * 1. `php artisan route:list --json` NO contiene rutas scaffold de módulos ni playground.
  * 2. `/` y `/playground` retornan 404 de forma natural (no 500 ni redirección).
+ *
+ * Estrategia: se inician subprocesos PHP separados con APP_ENV=production antes del
+ * bootstrap, por lo que el guard `if (! app()->isProduction())` en routes/web.php
+ * evalúa el entorno correcto. El proceso padre (PHPUnit) corre con APP_ENV=testing.
  */
 class ProductionRouteBarrierTest extends TestCase
 {
@@ -24,16 +28,17 @@ class ProductionRouteBarrierTest extends TestCase
 
         $this->assertTrue(
             $process->successful(),
-            'Artisan route:list debe ejecutarse con éxito en producción.',
+            'Artisan route:list debe ejecutarse con éxito en producción. stderr: '.$process->errorOutput(),
         );
 
         $routes = json_decode($process->output(), true);
-        $this->assertIsArray($routes, 'route:list --json debe devolver un arreglo.');
+        $this->assertIsArray($routes, 'route:list --json debe devolver un arreglo JSON válido.');
 
         $routeNames = array_filter(array_column($routes, 'name'));
         $routeUris = array_column($routes, 'uri');
 
         $disallowedPrefixes = ['customers.', 'products.', 'inventory.', 'sales.', 'routes.', 'settings.', 'playground'];
+
         foreach ($routeNames as $name) {
             foreach ($disallowedPrefixes as $prefix) {
                 $this->assertStringStartsNotWith(
@@ -61,9 +66,22 @@ class ProductionRouteBarrierTest extends TestCase
             ->env(['APP_ENV' => 'production'])
             ->run($command);
 
+        $this->assertTrue(
+            $process->successful(),
+            'El subproceso PHP de producción falló. stderr: '.$process->errorOutput(),
+        );
+
         $output = $process->output();
 
-        $this->assertStringContainsString('ROOT:404', $output, 'En producción / debe responder HTTP 404.');
-        $this->assertStringContainsString('PLAYGROUND:404', $output, 'En producción /playground debe responder HTTP 404.');
+        $this->assertStringContainsString(
+            'ROOT:404',
+            $output,
+            'En producción / debe responder HTTP 404. Salida completa: '.$output,
+        );
+        $this->assertStringContainsString(
+            'PLAYGROUND:404',
+            $output,
+            'En producción /playground debe responder HTTP 404. Salida completa: '.$output,
+        );
     }
 }
