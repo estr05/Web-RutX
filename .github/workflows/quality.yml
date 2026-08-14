@@ -58,12 +58,13 @@ jobs:
         run: php artisan key:generate --force
 
       - name: Run Pint code style check
-        run: php artisan pint --test
+        run: vendor/bin/pint --test
 
       - name: Test configuration cacheability
         run: |
           php artisan config:clear
           php artisan config:cache
+          php artisan config:clear
 
       - name: Run PHPUnit test suite
         run: php artisan test
