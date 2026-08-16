@@ -10,7 +10,6 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Mockery;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 /**
@@ -119,7 +118,7 @@ class ApiClientTest extends TestCase
         $this->assertSame('01J-no-data', $result['trace_id']);
     }
 
-    public function test_get_maps_401_to_functional_error(): void
+    public function test_get_maps_401_to_session_invalidation(): void
     {
         Http::fake([
             '*/api/v2/web/dashboard*' => Http::response([
@@ -132,9 +131,13 @@ class ApiClientTest extends TestCase
         $result = app(ApiClient::class)->get('/dashboard');
 
         $this->assertFalse($result['success']);
-        $this->assertSame('API_UNAVAILABLE', $result['code']);
-        $this->assertSame('No se pudo conectar con el servicio.', $result['message']);
+        $this->assertSame('UNAUTHORIZED', $result['code']);
+        $this->assertSame('Debes iniciar sesión nuevamente.', $result['message']);
         $this->assertSame('01J-401', $result['trace_id']);
+        $this->assertNull(
+            session('api_token'),
+            'Un 401 debe invalidar la sesión cifrada de inmediato.',
+        );
     }
 
     public function test_post_maps_422_validation_error_without_exposing_errors(): void
@@ -221,12 +224,12 @@ class ApiClientTest extends TestCase
     {
         session()->forget('api_token');
 
-        try {
-            app(ApiClient::class)->get('/dashboard');
-            $this->fail('Sin token de sesión debe lanzarse una excepción 401.');
-        } catch (HttpException $e) {
-            $this->assertSame(401, $e->getStatusCode());
-        }
+        $result = app(ApiClient::class)->get('/dashboard');
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('UNAUTHORIZED', $result['code']);
+        $this->assertSame('Debes iniciar sesión nuevamente.', $result['message']);
+        Http::assertNothingSent();
     }
 
     public function test_config_wires_api_web_section_and_api_errors_channel(): void

@@ -45,9 +45,15 @@ class ApiClient
      */
     public function get(string $endpoint, array $query = []): array
     {
+        $token = $this->tokenOrUnauthorized();
+
+        if ($token === null) {
+            return $this->error('UNAUTHORIZED', __('Debes iniciar sesión nuevamente.'), null);
+        }
+
         try {
             $response = $this->request()
-                ->withToken($this->resolveToken())
+                ->withToken($token)
                 ->get($endpoint, $query);
         } catch (ConnectionException $e) {
             return $this->error('API_UNAVAILABLE', __('No se pudo conectar con el servicio.'), null);
@@ -61,9 +67,33 @@ class ApiClient
      */
     public function post(string $endpoint, array $payload, array $headers = []): array
     {
+        $token = $this->tokenOrUnauthorized();
+
+        if ($token === null) {
+            return $this->error('UNAUTHORIZED', __('Debes iniciar sesión nuevamente.'), null);
+        }
+
         try {
             $response = $this->request()
-                ->withToken($this->resolveToken())
+                ->withToken($token)
+                ->withHeaders($headers)
+                ->post($endpoint, $payload);
+        } catch (ConnectionException $e) {
+            return $this->error('API_UNAVAILABLE', __('No se pudo conectar con el servicio.'), null);
+        }
+
+        return $this->resolve($response);
+    }
+
+    /**
+     * POST público SIN token — EXCLUSIVO para POST /api/v2/web/auth/login,
+     * único endpoint público del contrato v2. Mantiene el único punto de
+     * salida HTTP de la aplicación; cualquier otro uso es error de diseño.
+     */
+    public function postPublic(string $endpoint, array $payload, array $headers = []): array
+    {
+        try {
+            $response = $this->request()
                 ->withHeaders($headers)
                 ->post($endpoint, $payload);
         } catch (ConnectionException $e) {
@@ -75,12 +105,22 @@ class ApiClient
 
     /**
      * Token web desde la sesión cifrada del servidor.
+     *
+     * Sin token devuelve null y limpia las claves residuales de sesión: NO
+     * lanza excepción, porque la primera llamada de un render puede detectar
+     * un 401 (que ya invalidó la sesión) y las siguientes no deben abortar
+     * el request con un 401 HTTP — el redirect a login lo hace auth.session
+     * en el siguiente request.
      */
-    private function resolveToken(): string
+    private function tokenOrUnauthorized(): ?string
     {
         $token = session('api_token');
 
-        abort_unless($token, 401, __('Debes iniciar sesión nuevamente.'));
+        if (! $token) {
+            session()->forget(['api_token', 'user', 'permissions', 'roles', 'zone_ids', 'auth_expires_at']);
+
+            return null;
+        }
 
         return (string) $token;
     }
@@ -91,6 +131,14 @@ class ApiClient
     private function resolve(Response $response): array
     {
         $json = $response->json();
+
+        // 401 = token vencido/revocado: se invalida la sesión cifrada de
+        // inmediato (auth.session redirige a login en el siguiente request).
+        if ($response->status() === 401) {
+            session()->forget(['api_token', 'user', 'permissions', 'roles', 'zone_ids', 'auth_expires_at']);
+
+            return $this->error('UNAUTHORIZED', __('Debes iniciar sesión nuevamente.'), $json);
+        }
 
         if (! $response->successful() || ! is_array($json)) {
             return $this->error('API_UNAVAILABLE', __('No se pudo conectar con el servicio.'), $json);
