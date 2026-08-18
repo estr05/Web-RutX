@@ -141,6 +141,15 @@ class ApiClient
         }
 
         if (! $response->successful() || ! is_array($json)) {
+            // Envelope de error del contrato v2 en 4xx (code + message): se
+            // conserva el code funcional (FORBIDDEN_ZONE, VALIDATION_ERROR,
+            // IDEMPOTENCY_CONFLICT, NOT_FOUND...) con mensaje genérico. Los
+            // 5xx y las respuestas sin envelope siguen siendo API_UNAVAILABLE.
+            if ($response->status() >= 400 && $response->status() < 500
+                && isset($json['code'], $json['message'])) {
+                return $this->error($json['code'], __('Ocurrió un error en el servicio.'), $json);
+            }
+
             return $this->error('API_UNAVAILABLE', __('No se pudo conectar con el servicio.'), $json);
         }
 

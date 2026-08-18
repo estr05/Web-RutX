@@ -144,7 +144,8 @@ class DashboardServiceTest extends TestCase
         $result = app(DashboardService::class)->summary(['range' => 'invalido']);
 
         $this->assertFalse($result['success']);
-        $this->assertSame('No se pudo conectar con el servicio.', $result['message']);
+        $this->assertSame('VALIDATION_ERROR', $result['code']);
+        $this->assertSame('Ocurrió un error en el servicio.', $result['message']);
         $this->assertSame('01J-dash-422', $result['trace_id']);
         $this->assertArrayNotHasKey('errors', $result);
     }

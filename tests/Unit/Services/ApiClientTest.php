@@ -154,8 +154,9 @@ class ApiClientTest extends TestCase
         $result = app(ApiClient::class)->post('/cancellation-requests', ['sale_id' => 25]);
 
         $this->assertFalse($result['success']);
+        $this->assertSame('VALIDATION_ERROR', $result['code']);
         $this->assertArrayNotHasKey('errors', $result, 'El usuario no debe recibir la lista de errores de la API.');
-        $this->assertSame('No se pudo conectar con el servicio.', $result['message']);
+        $this->assertSame('Ocurrió un error en el servicio.', $result['message']);
         $this->assertSame('01J-422', $result['trace_id']);
     }
 
