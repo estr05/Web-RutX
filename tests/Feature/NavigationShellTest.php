@@ -182,7 +182,13 @@ class NavigationShellTest extends TestCase
 
     public function test_sidebar_renders_accessible_markup_and_icons(): void
     {
-        $this->session(['api_token' => 'web-token-test']);
+        $this->session([
+            'api_token' => 'web-token-test',
+            'permissions' => [
+                'reports.read',
+                'routes.monitor',
+            ],
+        ]);
 
         $response = $this->get(route('venta.reportes'));
 
@@ -197,7 +203,13 @@ class NavigationShellTest extends TestCase
 
     public function test_sidebar_renders_icon_for_each_view_of_active_module(): void
     {
-        $this->session(['api_token' => 'web-token-test']);
+        $this->session([
+            'api_token' => 'web-token-test',
+            'permissions' => [
+                'reports.read',
+                'routes.monitor',
+            ],
+        ]);
 
         $venta = config('navigation.modules.venta.views');
 

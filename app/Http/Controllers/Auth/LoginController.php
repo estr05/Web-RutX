@@ -40,12 +40,19 @@ class LoginController extends Controller
                 ->withErrors(['credentials' => $this->mensajeDeError($result)]);
         }
 
+        // Regenerar ID de sesión tras autenticación exitosa (session fixation).
+        $request->session()->regenerate();
+
         return redirect()->intended(route('venta.reportes'));
     }
 
     public function destroy(Request $request, WebAuthService $auth): RedirectResponse
     {
         $auth->logout();
+
+        // Invalidar sesión y regenerar token CSRF (logout limpio).
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return redirect()->route('login');
     }

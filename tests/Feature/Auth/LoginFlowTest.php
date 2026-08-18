@@ -56,7 +56,7 @@ class LoginFlowTest extends TestCase
                     'expires_at' => '2026-08-16T12:00:00-06:00',
                     'user' => ['username' => 'admin.rutx', 'display_name' => 'Admin RutX'],
                     'roles' => ['administrador'],
-                    'permissions' => ['venta.ver'],
+                    'permissions' => ['reports.read'],
                     'zone_ids' => [1],
                 ],
                 'trace_id' => '01J-feature-login-ok',
@@ -126,7 +126,7 @@ class LoginFlowTest extends TestCase
         $this->session([
             'api_token' => 'jwt-web-scope',
             'user' => ['username' => 'admin.rutx', 'display_name' => 'Admin RutX'],
-            'permissions' => ['venta.ver'],
+            'permissions' => ['reports.read'],
             'roles' => ['administrador'],
             'zone_ids' => [1],
         ]);
@@ -143,7 +143,7 @@ class LoginFlowTest extends TestCase
         $this->session([
             'api_token' => 'jwt-expirado',
             'user' => ['username' => 'admin.rutx', 'display_name' => 'Admin RutX'],
-            'permissions' => ['venta.ver'],
+            'permissions' => ['reports.read'],
             'roles' => ['administrador'],
             'zone_ids' => [1],
         ]);

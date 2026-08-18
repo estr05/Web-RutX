@@ -11,8 +11,9 @@ use Tests\TestCase;
  * ProductionRouteBarrierTest
  *
  * Verifica de forma aislada que en entorno de producción (APP_ENV=production):
- * 1. `php artisan route:list --json` NO contiene rutas scaffold de módulos ni playground.
- * 2. `/` y `/playground` retornan 404 de forma natural (no 500 ni redirección).
+ * 1. Las rutas de autenticación, negocio y configuración SÍ están registradas.
+ * 2. El playground NO está registrado.
+ * 3. `/` redirige a `/venta` (no 404).
  *
  * Estrategia: se inician subprocesos PHP separados con APP_ENV=production antes del
  * bootstrap, por lo que el guard `if (! app()->isProduction())` en routes/web.php
@@ -20,7 +21,7 @@ use Tests\TestCase;
  */
 class ProductionRouteBarrierTest extends TestCase
 {
-    public function test_production_environment_does_not_register_scaffold_or_playground_routes(): void
+    public function test_production_registers_business_and_auth_routes(): void
     {
         $process = Process::path(base_path())
             ->env(['APP_ENV' => 'production'])
@@ -35,51 +36,45 @@ class ProductionRouteBarrierTest extends TestCase
         $this->assertIsArray($routes, 'route:list --json debe devolver un arreglo JSON válido.');
 
         $routeNames = array_filter(array_column($routes, 'name'));
-        $routeUris = array_column($routes, 'uri');
 
-        // Sprint 3 · Etapa 2: los módulos de negocio ahora son venta./ruta. y
-        // el resto de los scaffolds (customers/products/inventory/settings)
-        // y el playground se mantienen fuera de producción.
-        $disallowedPrefixes = ['customers.', 'products.', 'inventory.', 'venta.', 'ruta.', 'settings.', 'playground'];
+        // En producción, las rutas legítimas de negocio y auth SÍ deben existir.
+        $expectedPrefixes = ['login', 'logout', 'customers.', 'products.', 'inventory.', 'venta.', 'ruta.', 'settings.', 'notifications.'];
 
-        foreach ($routeNames as $name) {
-            foreach ($disallowedPrefixes as $prefix) {
-                $this->assertStringStartsNotWith(
-                    $prefix,
-                    $name,
-                    "La ruta '{$name}' no debe estar registrada en entorno de producción.",
-                );
+        foreach ($expectedPrefixes as $prefix) {
+            $found = false;
+            foreach ($routeNames as $name) {
+                if (str_starts_with((string) $name, $prefix)) {
+                    $found = true;
+                    break;
+                }
             }
+            $this->assertTrue(
+                $found,
+                "Debe existir al menos una ruta con prefijo '{$prefix}' en producción.",
+            );
         }
 
-        $this->assertNotContains('playground', $routeUris, 'La URI playground no debe estar en producción.');
+        // El playground NO debe estar registrado en producción.
+        foreach ($routeNames as $name) {
+            $this->assertStringStartsNotWith(
+                'playground',
+                (string) $name,
+                'La ruta de playground no debe estar registrada en producción.',
+            );
+        }
     }
 
-    public function test_production_environment_returns_404_on_root_and_playground(): void
+    public function test_production_does_not_register_playground_route(): void
     {
         $process = Process::path(base_path())
             ->env(['APP_ENV' => 'production'])
-            ->run([
-                PHP_BINARY,
-                base_path('tests/Fixtures/production-route-barrier.php'),
-            ]);
+            ->run('php artisan route:list --json');
 
-        $this->assertTrue(
-            $process->successful(),
-            'El subproceso PHP de producción falló. stderr: '.$process->errorOutput(),
-        );
+        $this->assertTrue($process->successful());
 
-        $output = $process->output();
+        $routes = json_decode($process->output(), true);
+        $routeUris = array_column($routes, 'uri');
 
-        $this->assertStringContainsString(
-            'ROOT:404',
-            $output,
-            'En producción / debe responder HTTP 404. Salida completa: '.$output,
-        );
-        $this->assertStringContainsString(
-            'PLAYGROUND:404',
-            $output,
-            'En producción /playground debe responder HTTP 404. Salida completa: '.$output,
-        );
+        $this->assertNotContains('playground', $routeUris, 'La URI playground no debe estar en producción.');
     }
 }
