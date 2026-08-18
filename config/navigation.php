@@ -152,4 +152,21 @@ return [
         ],
 
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Utilidades del portal (Sprint 4)
+    |--------------------------------------------------------------------------
+    | Elementos de la topbar que no son módulos: se integran como utilidad y
+    | NO duplican módulos ni rutas (checklist §9). 'component' es la ruta
+    | kebab del componente Livewire; el permiso declara quién la ve.
+    */
+    'utilities' => [
+        'notifications' => [
+            'label' => 'Notificaciones',
+            'icon' => 'bell',
+            'permission' => 'notifications.read',
+            'component' => 'notifications.bell',
+        ],
+    ],
 ];

@@ -29,10 +29,18 @@ class ApiClient
 {
     /**
      * Construye la petición base hacia el Sincronizador (solo /api/v2/web/*).
+     *
+     * @throws ConnectionException
      */
     public function request(): PendingRequest
     {
-        return Http::baseUrl(config('services.api_web.base_url'))
+        $baseUrl = config('services.api_web.base_url');
+
+        if (! is_string($baseUrl) || $baseUrl === '') {
+            throw new ConnectionException('API_WEB_BASE_URL no está configurada.');
+        }
+
+        return Http::baseUrl($baseUrl)
             ->acceptJson()
             ->asJson()
             ->timeout(config('services.api_web.timeout'))

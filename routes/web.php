@@ -32,6 +32,9 @@ if (! app()->isProduction()) {
     require __DIR__.'/modules/venta.php';
     require __DIR__.'/modules/ruta.php';
 
+    // Módulos de negocio del Sprint 4 — auth.session + permission
+    require __DIR__.'/modules/notifications.php';
+
     // Autenticación (placeholder — vertical real en etapa posterior)
     require __DIR__.'/modules/auth.php';
 

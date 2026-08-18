@@ -57,4 +57,13 @@
             </a>
         @endforeach
     </nav>
+
+    {{-- Utilidades del portal (config.navigation.utilities) — campana de notificaciones --}}
+    <div class="flex items-center gap-2">
+        @foreach(config('navigation.utilities', []) as $utilityKey => $utility)
+            @if (($utility['component'] ?? null) !== null)
+                <livewire:{{ $utility['component'] }} />
+            @endif
+        @endforeach
+    </div>
 </header>

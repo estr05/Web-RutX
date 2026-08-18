@@ -1,2 +1,4 @@
-{{-- Clientes — scaffold Día 2, sin endpoint v2 --}}
-<x-module-scaffold />
+{{-- Clientes — catálogo funcional contra el contrato v2 (Sprint 4) --}}
+<x-app-layout>
+    <livewire:customers.index />
+</x-app-layout>
