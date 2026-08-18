@@ -99,15 +99,6 @@ class Index extends Component
         return (string) ($this->result['message'] ?? 'No se pudo conectar con el servicio.');
     }
 
-    /**
-     * Contador local de avisos activos (bandeja). La campana del topbar
-     * mantiene su propio estado; este valor solo refresca la vista actual.
-     */
-    public function getActiveCountProperty(): int
-    {
-        return (int) ($this->result['meta']['total'] ?? 0);
-    }
-
     public function consultar()
     {
         $validator = Validator::make($this->filterInput(), (new NotificationFilterRequest)->rules());
@@ -170,6 +161,7 @@ class Index extends Component
         }
 
         if ($result['success']) {
+            $this->resetErrorBag();
             $this->dispatch('rutx:feedback', Feedback::success('Aviso emitido correctamente.'));
             $this->dispatch('notifications:refresh');
             $this->reset('targetIdsText', 'title', 'body');

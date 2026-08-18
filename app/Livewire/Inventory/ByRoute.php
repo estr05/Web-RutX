@@ -156,7 +156,7 @@ class ByRoute extends Component
         try {
             $validated = Validator::make($this->filterInput(), (new InventoryRouteFilterRequest)->rules())->validated();
         } catch (ValidationException) {
-            return ['route_id' => $this->routeId ?? 0, 'page' => 1, 'per_page' => $this->perPage];
+            return ['route_id' => $this->routeId ?? null, 'page' => 1, 'per_page' => $this->perPage];
         }
 
         return collect($validated)

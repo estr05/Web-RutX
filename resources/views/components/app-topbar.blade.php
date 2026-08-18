@@ -62,7 +62,14 @@
     <div class="flex items-center gap-2">
         @foreach(config('navigation.utilities', []) as $utilityKey => $utility)
             @if (($utility['component'] ?? null) !== null)
-                <livewire:{{ $utility['component'] }} />
+                @php
+                    $utilityPermission = $utility['permission'] ?? null;
+                    $userPermissions = (array) session('permissions', []);
+                    $canSeeUtility = $utilityPermission === null || in_array($utilityPermission, $userPermissions, true);
+                @endphp
+                @if ($canSeeUtility)
+                    <livewire:{{ $utility['component'] }} />
+                @endif
             @endif
         @endforeach
     </div>

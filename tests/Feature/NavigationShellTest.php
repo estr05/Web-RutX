@@ -147,10 +147,14 @@ class NavigationShellTest extends TestCase
             'permissions' => [
                 'customers.read',
                 'products.read',
+                'products.price.read',
                 'inventory.read',
                 'reports.read',
                 'routes.monitor',
                 'config.users.read',
+                'config.roles.read',
+                'config.zones.read',
+                'notifications.read',
             ],
         ]);
 
