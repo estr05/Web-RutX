@@ -1,6 +1,6 @@
-<x-layouts.app>
+﻿<x-app-layout>
     <x-slot:title>
-        Detalle de Transacción - Ventas - RutX Web
+        Detalle de TransacciÃ³n - Ventas - RutX Web
     </x-slot:title>
 
     <div class="h-full flex flex-col">
@@ -16,4 +16,4 @@
 
         <livewire:sales.show :saleId="$saleId" />
     </div>
-</x-layouts.app>
+</x-app-layout>
