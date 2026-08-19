@@ -152,7 +152,12 @@ class ApiClient
             // Envelope de error del contrato v2 en 4xx (code + message): se
             // conserva el code funcional (FORBIDDEN_ZONE, VALIDATION_ERROR,
             // IDEMPOTENCY_CONFLICT, NOT_FOUND...) con mensaje genérico. Los
-            // 5xx y las respuestas sin envelope siguen siendo API_UNAVAILABLE.
+            // 5xx y las respuestas sin envelope siguen siendo API_UNAVAILABLE,
+            // excepto 501 que expone explícitamente FEATURE_NOT_READY.
+            if ($response->status() === 501 && isset($json['code'])) {
+                return $this->error($json['code'], $json['message'] ?? __('Funcionalidad no disponible.'), $json);
+            }
+
             if ($response->status() >= 400 && $response->status() < 500
                 && isset($json['code'], $json['message'])) {
                 return $this->error($json['code'], __('Ocurrió un error en el servicio.'), $json);
