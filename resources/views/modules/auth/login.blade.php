@@ -1,7 +1,8 @@
-{{-- Login — placeholder de oficina (Sprint 3 · Etapa 2).
-     Solo es el destino de redirección de auth.session. El vertical real
-     (Form Request + POST /api/v2/web/auth/login) llega en una etapa
-     posterior. Sin datos, sin hex: únicamente tokens y componentes. --}}
+{{-- Login de oficina (Sprint 4 · Bloque 0).
+     Formulario real: CSRF, validación local, throttle en la ruta y errores
+     funcionales. El token JWT se guarda SOLO en la sesión cifrada del
+     servidor; nunca en localStorage, cookies legibles ni atributos data-.
+     Sin hex: únicamente tokens y componentes existentes. --}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -14,7 +15,7 @@
 </head>
 <body class="bg-rutx-bg text-rutx-text font-sans antialiased">
     <div class="min-h-screen flex items-center justify-center p-6">
-        <div class="w-full max-w-md bg-rutx-surface border border-rutx-border rounded-[var(--rutx-radius-lg)] p-8 shadow-sm">
+        <div class="w-full max-w-md bg-rutx-surface border border-rutx-border rounded-[var(--rutx-radius-lg)] p-8 shadow-[var(--rutx-shadow-base)]">
             <h1 class="text-[30px] leading-[1.2] font-bold text-rutx-primary tracking-tight">
                 RUTX
             </h1>
@@ -22,11 +23,51 @@
                 Plataforma de administración y operaciones de rutas.
             </p>
 
-            <div class="mt-6 border-t border-rutx-border pt-6">
-                <p class="text-sm text-rutx-text">
-                    La autenticación de oficina se integra en una etapa posterior.
-                </p>
-            </div>
+            @if ($errors->any())
+                <div class="mt-6">
+                    <x-alert type="error" :message="$errors->first()" />
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('login.store') }}" class="mt-6 border-t border-rutx-border pt-6 flex flex-col gap-4">
+                @csrf
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="username" class="text-sm font-medium text-rutx-text">
+                        Usuario
+                    </label>
+                    <input
+                        id="username"
+                        type="text"
+                        name="username"
+                        value="{{ old('username') }}"
+                        required
+                        autocomplete="username"
+                        class="h-[var(--rutx-height-input)] px-3 rounded-lg border border-rutx-border bg-rutx-bg text-sm focus:outline-none focus:ring-2 focus:ring-rutx-accent"
+                    >
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="password" class="text-sm font-medium text-rutx-text">
+                        Contraseña
+                    </label>
+                    <input
+                        id="password"
+                        type="password"
+                        name="password"
+                        required
+                        autocomplete="current-password"
+                        class="h-[var(--rutx-height-input)] px-3 rounded-lg border border-rutx-border bg-rutx-bg text-sm focus:outline-none focus:ring-2 focus:ring-rutx-accent"
+                    >
+                </div>
+
+                <button
+                    type="submit"
+                    class="h-[var(--rutx-height-button)] rounded-xl bg-rutx-accent text-white hover:bg-rutx-accent-hover transition-colors font-medium text-sm mt-2"
+                >
+                    Iniciar sesión
+                </button>
+            </form>
         </div>
     </div>
 </body>

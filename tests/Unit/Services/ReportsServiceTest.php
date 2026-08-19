@@ -176,7 +176,9 @@ class ReportsServiceTest extends TestCase
         $result = app(ReportsService::class)->report(['date_from' => '14/08/2026']);
 
         $this->assertFalse($result['success']);
-        $this->assertSame('No se pudo conectar con el servicio.', $result['message']);
+        $this->assertSame('VALIDATION_ERROR', $result['code']);
+        $this->assertSame('Filtro inválido.', $result['message']);
+        $this->assertSame(['date_from' => ['Formato inválido.']], $result['errors']);
         $this->assertSame('01J-report-422', $result['trace_id']);
     }
 

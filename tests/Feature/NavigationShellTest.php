@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
@@ -31,6 +32,11 @@ class NavigationShellTest extends TestCase
         // Gráficas: modo stub para que el render del chasis no intente
         // llamadas HTTP reales durante las pruebas de navegación.
         config()->set('services.api_web.stubs_enabled', true);
+
+        // Los componentes funcionales del Sprint 4 (Clientes, Inventario,
+        // Notificaciones) consultan la API v2 desde su primer render: se
+        // impide cualquier llamada HTTP real durante el recorrido del chasis.
+        Http::fake();
     }
 
     // -------------------------------------------------------------------------
@@ -133,8 +139,24 @@ class NavigationShellTest extends TestCase
 
     public function test_every_declared_view_renders_its_navigation_context(): void
     {
-        // Las rutas de módulo van protegidas por auth.session (Sprint 3).
-        $this->session(['api_token' => 'web-token-test']);
+        // Las rutas de módulo van protegidas por auth.session (Sprint 3) y por
+        // permission:<claim> (Sprint 4): la sesión de prueba declara los
+        // permisos de todas las vistas para ejercitar el chasis de navegación.
+        $this->session([
+            'api_token' => 'web-token-test',
+            'permissions' => [
+                'customers.read',
+                'products.read',
+                'products.price.read',
+                'inventory.read',
+                'reports.read',
+                'routes.monitor',
+                'config.users.read',
+                'config.roles.read',
+                'config.zones.read',
+                'notifications.read',
+            ],
+        ]);
 
         foreach (config('navigation.modules', []) as $module) {
             foreach ($module['views'] as $routeName => $view) {
@@ -160,7 +182,13 @@ class NavigationShellTest extends TestCase
 
     public function test_sidebar_renders_accessible_markup_and_icons(): void
     {
-        $this->session(['api_token' => 'web-token-test']);
+        $this->session([
+            'api_token' => 'web-token-test',
+            'permissions' => [
+                'reports.read',
+                'routes.monitor',
+            ],
+        ]);
 
         $response = $this->get(route('venta.reportes'));
 
@@ -175,7 +203,13 @@ class NavigationShellTest extends TestCase
 
     public function test_sidebar_renders_icon_for_each_view_of_active_module(): void
     {
-        $this->session(['api_token' => 'web-token-test']);
+        $this->session([
+            'api_token' => 'web-token-test',
+            'permissions' => [
+                'reports.read',
+                'routes.monitor',
+            ],
+        ]);
 
         $venta = config('navigation.modules.venta.views');
 

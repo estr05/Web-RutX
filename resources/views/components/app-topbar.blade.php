@@ -57,4 +57,20 @@
             </a>
         @endforeach
     </nav>
+
+    {{-- Utilidades del portal (config.navigation.utilities) — campana de notificaciones --}}
+    <div class="flex items-center gap-2">
+        @foreach(config('navigation.utilities', []) as $utilityKey => $utility)
+            @if (($utility['component'] ?? null) !== null)
+                @php
+                    $utilityPermission = $utility['permission'] ?? null;
+                    $userPermissions = (array) session('permissions', []);
+                    $canSeeUtility = $utilityPermission === null || in_array($utilityPermission, $userPermissions, true);
+                @endphp
+                @if ($canSeeUtility)
+                    <livewire:{{ $utility['component'] }} />
+                @endif
+            @endif
+        @endforeach
+    </div>
 </header>

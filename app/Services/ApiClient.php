@@ -29,10 +29,18 @@ class ApiClient
 {
     /**
      * Construye la petición base hacia el Sincronizador (solo /api/v2/web/*).
+     *
+     * @throws ConnectionException
      */
     public function request(): PendingRequest
     {
-        return Http::baseUrl(config('services.api_web.base_url'))
+        $baseUrl = config('services.api_web.base_url');
+
+        if (! is_string($baseUrl) || $baseUrl === '') {
+            throw new ConnectionException('API_WEB_BASE_URL no está configurada.');
+        }
+
+        return Http::baseUrl($baseUrl)
             ->acceptJson()
             ->asJson()
             ->timeout(config('services.api_web.timeout'))
@@ -45,9 +53,15 @@ class ApiClient
      */
     public function get(string $endpoint, array $query = []): array
     {
+        $token = $this->tokenOrUnauthorized();
+
+        if ($token === null) {
+            return $this->error('UNAUTHORIZED', __('Debes iniciar sesión nuevamente.'), null);
+        }
+
         try {
             $response = $this->request()
-                ->withToken($this->resolveToken())
+                ->withToken($token)
                 ->get($endpoint, $query);
         } catch (ConnectionException $e) {
             return $this->error('API_UNAVAILABLE', __('No se pudo conectar con el servicio.'), null);
@@ -61,9 +75,33 @@ class ApiClient
      */
     public function post(string $endpoint, array $payload, array $headers = []): array
     {
+        $token = $this->tokenOrUnauthorized();
+
+        if ($token === null) {
+            return $this->error('UNAUTHORIZED', __('Debes iniciar sesión nuevamente.'), null);
+        }
+
         try {
             $response = $this->request()
-                ->withToken($this->resolveToken())
+                ->withToken($token)
+                ->withHeaders($headers)
+                ->post($endpoint, $payload);
+        } catch (ConnectionException $e) {
+            return $this->error('API_UNAVAILABLE', __('No se pudo conectar con el servicio.'), null);
+        }
+
+        return $this->resolve($response);
+    }
+
+    /**
+     * POST público SIN token — EXCLUSIVO para POST /api/v2/web/auth/login,
+     * único endpoint público del contrato v2. Mantiene el único punto de
+     * salida HTTP de la aplicación; cualquier otro uso es error de diseño.
+     */
+    public function postPublic(string $endpoint, array $payload, array $headers = []): array
+    {
+        try {
+            $response = $this->request()
                 ->withHeaders($headers)
                 ->post($endpoint, $payload);
         } catch (ConnectionException $e) {
@@ -75,12 +113,22 @@ class ApiClient
 
     /**
      * Token web desde la sesión cifrada del servidor.
+     *
+     * Sin token devuelve null y limpia las claves residuales de sesión: NO
+     * lanza excepción, porque la primera llamada de un render puede detectar
+     * un 401 (que ya invalidó la sesión) y las siguientes no deben abortar
+     * el request con un 401 HTTP — el redirect a login lo hace auth.session
+     * en el siguiente request.
      */
-    private function resolveToken(): string
+    private function tokenOrUnauthorized(): ?string
     {
         $token = session('api_token');
 
-        abort_unless($token, 401, __('Debes iniciar sesión nuevamente.'));
+        if (! $token) {
+            session()->forget(['api_token', 'user', 'permissions', 'roles', 'zone_ids', 'auth_expires_at']);
+
+            return null;
+        }
 
         return (string) $token;
     }
@@ -92,7 +140,32 @@ class ApiClient
     {
         $json = $response->json();
 
+        // 401 = token vencido/revocado: se invalida la sesión cifrada de
+        // inmediato (auth.session redirige a login en el siguiente request).
+        if ($response->status() === 401) {
+            session()->forget(['api_token', 'user', 'permissions', 'roles', 'zone_ids', 'auth_expires_at']);
+
+            return $this->error('UNAUTHORIZED', __('Debes iniciar sesión nuevamente.'), $json);
+        }
+
         if (! $response->successful() || ! is_array($json)) {
+            if ($response->status() === 501 && isset($json['code'])) {
+                return $this->error($json['code'], $json['message'] ?? __('Funcionalidad no disponible.'), $json);
+            }
+
+            if ($response->status() === 503 && isset($json['code'])) {
+                return $this->error($json['code'], $json['message'] ?? __('Servicio en mantenimiento.'), $json);
+            }
+
+            if ($response->status() === 422 && isset($json['code'])) {
+                return $this->error($json['code'], $json['message'] ?? __('Errores de validación.'), $json);
+            }
+
+            if ($response->status() >= 400 && $response->status() < 500
+                && isset($json['code'], $json['message'])) {
+                return $this->error($json['code'], __('Ocurrió un error en el servicio.'), $json);
+            }
+
             return $this->error('API_UNAVAILABLE', __('No se pudo conectar con el servicio.'), $json);
         }
 
@@ -108,22 +181,28 @@ class ApiClient
     }
 
     /**
-     * Envelope de error funcional: nunca expone token, payload ni excepción.
+     * Envelope de error funcional: conserva `errors` estructurados del contrato,
+     * pero nunca expone tokens, payload sensible ni excepciones.
      * El trace_id se registra en el canal `api_errors` para trazabilidad.
      */
     private function error(string $code, string $userMessage, mixed $raw): array
     {
+        // Una API intermediaria puede devolver HTML, texto plano o un body vacío.
+        // Normalizar aquí evita que el manejo del error produzca un segundo error.
+        $rawEnvelope = is_array($raw) ? $raw : [];
+
         Log::channel('api_errors')->error('ApiClient error', [
             'code' => $code,
-            'trace_id' => $raw['trace_id'] ?? null,
-            'status' => $raw['status'] ?? null,
+            'trace_id' => $rawEnvelope['trace_id'] ?? null,
+            'status' => $rawEnvelope['status'] ?? null,
         ]);
 
         return [
             'success' => false,
             'code' => $code,
             'message' => $userMessage,
-            'trace_id' => $raw['trace_id'] ?? null,
+            'errors' => $rawEnvelope['errors'] ?? null,
+            'trace_id' => $rawEnvelope['trace_id'] ?? null,
         ];
     }
 }

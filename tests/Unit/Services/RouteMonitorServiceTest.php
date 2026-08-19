@@ -172,7 +172,9 @@ class RouteMonitorServiceTest extends TestCase
         $result = app(RouteMonitorService::class)->monitor(['zone_id' => 999]);
 
         $this->assertFalse($result['success']);
-        $this->assertSame('No se pudo conectar con el servicio.', $result['message']);
+        $this->assertSame('VALIDATION_ERROR', $result['code']);
+        $this->assertSame('Filtro inválido.', $result['message']);
+        $this->assertSame(['zone_id' => ['Zona no autorizada.']], $result['errors']);
         $this->assertSame('01J-monitor-422', $result['trace_id']);
     }
 

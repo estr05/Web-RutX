@@ -1,2 +1,4 @@
-{{-- Inventario por ruta — scaffold Día 2, sin endpoint v2 --}}
-<x-module-scaffold />
+{{-- Inventario — piloto por ruta contra el contrato v2 (Sprint 4) --}}
+<x-app-layout>
+    <livewire:inventory.by-route />
+</x-app-layout>
