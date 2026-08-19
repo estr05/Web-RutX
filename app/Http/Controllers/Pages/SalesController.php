@@ -27,4 +27,14 @@ class SalesController extends Controller
     {
         return view('modules.venta.rentabilidad');
     }
+
+    public function transacciones()
+    {
+        return view('modules.venta.transacciones');
+    }
+
+    public function detalle(int $id)
+    {
+        return view('modules.venta.detalle', ['saleId' => $id]);
+    }
 }
