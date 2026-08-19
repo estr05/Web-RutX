@@ -9,7 +9,16 @@ use Illuminate\Support\Facades\Route;
  * segunda barrera local). El monitoreo con polling 10–30 s y el mapa
  * Leaflet se integran en el componente Livewire de etapas posteriores.
  */
-Route::middleware(['auth.session', 'permission:routes.monitor'])->prefix('ruta')->name('ruta.')->group(function () {
-    Route::get('/', [RouteController::class, 'mapa'])->name('mapa');
-    Route::get('/jornada', [RouteController::class, 'jornada'])->name('jornada');
+Route::middleware(['auth.session'])->prefix('ruta')->name('ruta.')->group(function () {
+    Route::get('/agenda', [RouteController::class, 'agenda'])
+        ->name('agenda')
+        ->middleware('permission:agendas.read');
+
+    Route::get('/', [RouteController::class, 'mapa'])
+        ->name('mapa')
+        ->middleware('permission:routes.monitor');
+
+    Route::get('/jornada', [RouteController::class, 'jornada'])
+        ->name('jornada')
+        ->middleware('permission:routes.monitor');
 });

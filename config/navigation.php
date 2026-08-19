@@ -112,8 +112,13 @@ return [
             'label' => 'Ruta',
             'icon' => 'truck',
             'permission' => 'module.ruta.access',
-            'default_route' => 'ruta.mapa',
+            'default_route' => 'ruta.agenda',
             'views' => [
+                'ruta.agenda' => [
+                    'label' => 'Agenda',
+                    'icon' => 'calendar-days',
+                    'permission' => 'agendas.read',
+                ],
                 'ruta.mapa' => [
                     'label' => 'Mapa en tiempo real',
                     'icon' => 'map',
