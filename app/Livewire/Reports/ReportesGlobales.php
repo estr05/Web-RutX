@@ -143,7 +143,7 @@ class ReportesGlobales extends Component
 
         if ($validator->fails()) {
             $this->dispatch('rutx:feedback', Feedback::error('Revisa los filtros del reporte.'));
-            $this->resetErrorBag($validator->errors()->getMessages());
+            $this->setErrorBag($validator->errors());
 
             return;
         }
