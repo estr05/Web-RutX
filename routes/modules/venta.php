@@ -21,12 +21,12 @@ Route::middleware(['auth.session'])->prefix('venta')->name('venta.')->group(func
     Route::get('/rentabilidad', [SalesController::class, 'rentabilidad'])
         ->name('rentabilidad')
         ->middleware('permission:reports.read');
-        
+
     // Nuevas rutas Sprint 5 - Fase 4
     Route::get('/transacciones', [SalesController::class, 'transacciones'])
         ->name('transacciones')
         ->middleware('permission:sales.read');
-        
+
     Route::get('/transacciones/{id}', [SalesController::class, 'detalle'])
         ->name('detalle')
         ->middleware('permission:sales.read');
