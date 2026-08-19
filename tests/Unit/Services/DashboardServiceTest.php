@@ -145,9 +145,9 @@ class DashboardServiceTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertSame('VALIDATION_ERROR', $result['code']);
-        $this->assertSame('Ocurrió un error en el servicio.', $result['message']);
+        $this->assertSame('Filtro inválido.', $result['message']);
+        $this->assertSame(['range' => ['El rango no es válido.']], $result['errors']);
         $this->assertSame('01J-dash-422', $result['trace_id']);
-        $this->assertArrayNotHasKey('errors', $result);
     }
 
     public function test_500_logs_trace_id_in_api_errors_channel(): void

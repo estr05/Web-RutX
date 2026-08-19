@@ -173,7 +173,8 @@ class RouteMonitorServiceTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertSame('VALIDATION_ERROR', $result['code']);
-        $this->assertSame('Ocurrió un error en el servicio.', $result['message']);
+        $this->assertSame('Filtro inválido.', $result['message']);
+        $this->assertSame(['zone_id' => ['Zona no autorizada.']], $result['errors']);
         $this->assertSame('01J-monitor-422', $result['trace_id']);
     }
 

@@ -20,7 +20,7 @@ use Tests\TestCase;
  * - Accept/Content-Type JSON, timeout y TLS configurados por request.
  * - Envelope de éxito (data, meta, trace_id) y errores funcionales.
  * - trace_id registrado en el canal de log `api_errors`.
- * - Errores remotos nunca exponen payload, errors ni excepción al usuario.
+ * - Errores remotos nunca exponen payload sensible ni excepción al usuario; `errors` se conserva dentro del envelope interno conforme al contrato v2.
  */
 class ApiClientTest extends TestCase
 {
@@ -140,7 +140,7 @@ class ApiClientTest extends TestCase
         );
     }
 
-    public function test_post_maps_422_validation_error_without_exposing_errors(): void
+    public function test_post_maps_422_validation_error_with_errors_envelope(): void
     {
         Http::fake([
             '*/api/v2/web/cancellation-requests*' => Http::response([
@@ -155,8 +155,8 @@ class ApiClientTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertSame('VALIDATION_ERROR', $result['code']);
-        $this->assertArrayNotHasKey('errors', $result, 'El usuario no debe recibir la lista de errores de la API.');
-        $this->assertSame('Ocurrió un error en el servicio.', $result['message']);
+        $this->assertSame(['reason' => ['El motivo es obligatorio.']], $result['errors']);
+        $this->assertSame('El motivo es obligatorio.', $result['message']);
         $this->assertSame('01J-422', $result['trace_id']);
     }
 

@@ -181,23 +181,28 @@ class ApiClient
     }
 
     /**
-     * Envelope de error funcional: nunca expone token, payload ni excepción.
+     * Envelope de error funcional: conserva `errors` estructurados del contrato,
+     * pero nunca expone tokens, payload sensible ni excepciones.
      * El trace_id se registra en el canal `api_errors` para trazabilidad.
      */
     private function error(string $code, string $userMessage, mixed $raw): array
     {
+        // Una API intermediaria puede devolver HTML, texto plano o un body vacío.
+        // Normalizar aquí evita que el manejo del error produzca un segundo error.
+        $rawEnvelope = is_array($raw) ? $raw : [];
+
         Log::channel('api_errors')->error('ApiClient error', [
             'code' => $code,
-            'trace_id' => $raw['trace_id'] ?? null,
-            'status' => $raw['status'] ?? null,
+            'trace_id' => $rawEnvelope['trace_id'] ?? null,
+            'status' => $rawEnvelope['status'] ?? null,
         ]);
 
         return [
             'success' => false,
             'code' => $code,
             'message' => $userMessage,
-            'errors' => $raw['errors'] ?? null,
-            'trace_id' => $raw['trace_id'] ?? null,
+            'errors' => $rawEnvelope['errors'] ?? null,
+            'trace_id' => $rawEnvelope['trace_id'] ?? null,
         ];
     }
 }

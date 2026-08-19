@@ -43,6 +43,7 @@ class WebAuthServiceTest extends TestCase
             '*/api/v2/web/auth/login' => Http::response([
                 'data' => [
                     'access_token' => 'jwt-web-scope',
+                    'scope' => 'web',
                     'expires_at' => '2026-08-16T12:00:00-06:00',
                     'user' => [
                         'username' => 'admin.rutx',

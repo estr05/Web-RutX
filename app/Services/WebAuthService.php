@@ -47,7 +47,7 @@ class WebAuthService
 
         $scopes = (array) ($data['scopes'] ?? $data['scope'] ?? []);
         if (! in_array('web', $scopes, true)) {
-            return ['success' => false, 'code' => 'SCOPE_REQUIRED', 'message' => 'El token no tiene el alcance web requerido.'];
+            return ['success' => false, 'code' => 'WEB_SCOPE_REQUIRED', 'message' => 'El token no tiene el alcance web requerido.'];
         }
 
         session()->put('api_token', $accessToken);
