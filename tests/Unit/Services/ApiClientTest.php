@@ -218,6 +218,211 @@ class ApiClientTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // PATCH — método batch autenticado con Idempotency-Key
+    // -------------------------------------------------------------------------
+
+    public function test_patch_sends_payload_method_and_idempotency_key(): void
+    {
+        Http::fake([
+            '*/api/v2/web/agendas/assignments:batch' => Http::response([
+                'data' => ['applied' => 3, 'schedule_version' => 7],
+                'trace_id' => '01J-patch-ok',
+            ], 200),
+        ]);
+
+        $result = app(ApiClient::class)->patch(
+            '/agendas/assignments:batch',
+            ['schedule_version' => 6, 'changes' => [['customer_id' => 1, 'seller_id' => 2, 'date' => '2026-08-19']]],
+            ['Idempotency-Key' => 'idem-batch-001'],
+        );
+
+        $this->assertTrue($result['success']);
+        $this->assertSame(['applied' => 3, 'schedule_version' => 7], $result['data']);
+        $this->assertSame('01J-patch-ok', $result['trace_id']);
+
+        Http::assertSent(function (Request $request): bool {
+            return $request->method() === 'PATCH'
+                && str_contains($request->url(), '/agendas/assignments:batch')
+                && $request->hasHeader('Authorization', 'Bearer web-token-test')
+                && $request->hasHeader('Idempotency-Key', 'idem-batch-001')
+                && $request->hasHeader('Content-Type', 'application/json')
+                && $request->data()['schedule_version'] === 6;
+        });
+    }
+
+    public function test_patch_without_token_returns_unauthorized_and_sends_nothing(): void
+    {
+        session()->forget('api_token');
+
+        $result = app(ApiClient::class)->patch('/agendas/assignments:batch', []);
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('UNAUTHORIZED', $result['code']);
+        $this->assertSame('Debes iniciar sesión nuevamente.', $result['message']);
+        Http::assertNothingSent();
+    }
+
+    public function test_patch_maps_401_to_session_invalidation(): void
+    {
+        Http::fake([
+            '*/api/v2/web/agendas*' => Http::response([
+                'code' => 'UNAUTHENTICATED',
+                'message' => 'Token inválido.',
+                'trace_id' => '01J-patch-401',
+            ], 401),
+        ]);
+
+        $result = app(ApiClient::class)->patch('/agendas/assignments:batch', []);
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('UNAUTHORIZED', $result['code']);
+        $this->assertSame('01J-patch-401', $result['trace_id']);
+        $this->assertNull(
+            session('api_token'),
+            'Un 401 en PATCH debe invalidar la sesión cifrada de inmediato.',
+        );
+    }
+
+    public function test_patch_maps_409_schedule_version_conflict(): void
+    {
+        Http::fake([
+            '*/api/v2/web/agendas*' => Http::response([
+                'code' => 'SCHEDULE_VERSION_CONFLICT',
+                'message' => 'La agenda fue modificada por otra sesión.',
+                'trace_id' => '01J-patch-409',
+            ], 409),
+        ]);
+
+        $result = app(ApiClient::class)->patch('/agendas/assignments:batch', ['schedule_version' => 5]);
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('SCHEDULE_VERSION_CONFLICT', $result['code']);
+        $this->assertSame('01J-patch-409', $result['trace_id']);
+    }
+
+    public function test_patch_maps_409_idempotency_conflict(): void
+    {
+        Http::fake([
+            '*/api/v2/web/agendas*' => Http::response([
+                'code' => 'IDEMPOTENCY_CONFLICT',
+                'message' => 'Esta operación ya fue procesada.',
+                'trace_id' => '01J-patch-idem',
+            ], 409),
+        ]);
+
+        $result = app(ApiClient::class)->patch(
+            '/agendas/assignments:batch',
+            [],
+            ['Idempotency-Key' => 'idem-batch-001'],
+        );
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('IDEMPOTENCY_CONFLICT', $result['code']);
+        $this->assertSame('01J-patch-idem', $result['trace_id']);
+    }
+
+    public function test_patch_maps_422_with_validation_errors(): void
+    {
+        Http::fake([
+            '*/api/v2/web/agendas*' => Http::response([
+                'code' => 'VALIDATION_ERROR',
+                'message' => 'El campo changes es obligatorio.',
+                'errors' => ['changes' => ['El campo changes es obligatorio.']],
+                'trace_id' => '01J-patch-422',
+            ], 422),
+        ]);
+
+        $result = app(ApiClient::class)->patch('/agendas/assignments:batch', []);
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('VALIDATION_ERROR', $result['code']);
+        $this->assertSame(['changes' => ['El campo changes es obligatorio.']], $result['errors']);
+        $this->assertSame('01J-patch-422', $result['trace_id']);
+    }
+
+    public function test_patch_maps_501_not_implemented(): void
+    {
+        Http::fake([
+            '*/api/v2/web/agendas*' => Http::response([
+                'code' => 'NOT_IMPLEMENTED',
+                'message' => 'Funcionalidad no disponible.',
+                'trace_id' => '01J-patch-501',
+            ], 501),
+        ]);
+
+        $result = app(ApiClient::class)->patch('/agendas/assignments:batch', []);
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('NOT_IMPLEMENTED', $result['code']);
+        $this->assertSame('01J-patch-501', $result['trace_id']);
+    }
+
+    public function test_patch_maps_503_service_unavailable(): void
+    {
+        Http::fake([
+            '*/api/v2/web/agendas*' => Http::response([
+                'code' => 'SERVICE_UNAVAILABLE',
+                'message' => 'Servicio en mantenimiento.',
+                'trace_id' => '01J-patch-503',
+            ], 503),
+        ]);
+
+        $result = app(ApiClient::class)->patch('/agendas/assignments:batch', []);
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('SERVICE_UNAVAILABLE', $result['code']);
+        $this->assertSame('01J-patch-503', $result['trace_id']);
+    }
+
+    public function test_patch_reports_invalid_envelope_when_data_missing(): void
+    {
+        Http::fake([
+            '*/api/v2/web/agendas*' => Http::response(['trace_id' => '01J-patch-envelope'], 200),
+        ]);
+
+        $result = app(ApiClient::class)->patch('/agendas/assignments:batch', []);
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('INVALID_ENVELOPE', $result['code']);
+        $this->assertSame('01J-patch-envelope', $result['trace_id']);
+    }
+
+    public function test_patch_connection_failure_returns_functional_error(): void
+    {
+        Http::fake(fn (Request $request) => throw new ConnectionException('Connection refused'));
+
+        $result = app(ApiClient::class)->patch('/agendas/assignments:batch', []);
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('API_UNAVAILABLE', $result['code']);
+        $this->assertSame('No se pudo conectar con el servicio.', $result['message']);
+    }
+
+    public function test_patch_logs_trace_id_in_api_errors_channel(): void
+    {
+        $logger = Mockery::mock();
+        $logger->shouldReceive('error')
+            ->once()
+            ->withArgs(function (string $message, array $context): bool {
+                return $message === 'ApiClient error'
+                    && $context['code'] === 'SCHEDULE_VERSION_CONFLICT'
+                    && $context['trace_id'] === '01J-patch-log';
+            });
+
+        Log::shouldReceive('channel')->with('api_errors')->once()->andReturn($logger);
+
+        Http::fake([
+            '*/api/v2/web/agendas*' => Http::response([
+                'code' => 'SCHEDULE_VERSION_CONFLICT',
+                'message' => 'Conflicto de versión.',
+                'trace_id' => '01J-patch-log',
+            ], 409),
+        ]);
+
+        app(ApiClient::class)->patch('/agendas/assignments:batch', []);
+    }
+
+    // -------------------------------------------------------------------------
     // Token de sesión y configuración
     // -------------------------------------------------------------------------
 

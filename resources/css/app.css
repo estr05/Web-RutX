@@ -183,45 +183,13 @@
 }
 
 @layer base {
-    @font-face {
-        font-family: Inter;
-        src: url('/fonts/inter/Inter-Regular.woff2') format('woff2');
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-    }
-
-    @font-face {
-        font-family: Inter;
-        src: url('/fonts/inter/Inter-Medium.woff2') format('woff2');
-        font-weight: 500;
-        font-style: normal;
-        font-display: swap;
-    }
-
-    @font-face {
-        font-family: Inter;
-        src: url('/fonts/inter/Inter-SemiBold.woff2') format('woff2');
-        font-weight: 600;
-        font-style: normal;
-        font-display: swap;
-    }
-
-    @font-face {
-        font-family: Inter;
-        src: url('/fonts/inter/Inter-Bold.woff2') format('woff2');
-        font-weight: 700;
-        font-style: normal;
-        font-display: swap;
-    }
-
-    @font-face {
-        font-family: 'JetBrains Mono';
-        src: url('/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2') format('woff2');
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-    }
+    /*
+     * Las fuentes Inter y JetBrains Mono se cargan desde public/fonts/fonts.css,
+     * enlazado directamente en el <head> del layout antes de @vite(). Las
+     * declaraciones @font-face no pasan por el bundle de Vite para evitar
+     * advertencias de resolución de activos públicos en build time.
+     * Regla del proyecto: Inter para UI, JetBrains Mono para montos/códigos.
+     */
 
     body {
         @apply bg-rutx-bg text-rutx-text font-sans antialiased;

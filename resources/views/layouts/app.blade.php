@@ -24,6 +24,10 @@
     <title>{{ $pageTitle }}</title>
     <meta name="description" content="RutX Web — Plataforma de administración y operaciones de rutas.">
 
+    {{-- Fuentes tipográficas: activo público estático, fuera del bundle de Vite --}}
+    {{-- Inter (UI) y JetBrains Mono (montos/códigos). Sin CDN. --}}
+    <link rel="stylesheet" href="/fonts/fonts.css">
+
     {{-- Assets compilados con Vite — sin CDN externos --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
