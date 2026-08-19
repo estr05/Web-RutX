@@ -44,6 +44,9 @@ class Agenda extends Component
     #[Locked]
     public array $options = ['zones' => [], 'routes' => []];
 
+    #[Locked]
+    public array $unassignedCustomers = [];
+
     public bool $loading = false;
 
     public ?string $errorMessage = null;
@@ -97,59 +100,79 @@ class Agenda extends Component
         $this->days = $data['days'] ?? [];
         $this->options = $data['options'] ?? $this->options;
 
+        $this->loadUnassigned();
+
         $this->loading = false;
     }
 
-    /**
-     * Aplica un lote de cambios desde el frontend (Drag&Drop).
-     *
-     * @param  array<int, array<string, mixed>>  $changes
-     */
-    public function applyBatch(array $changes): void
+    public function loadUnassigned(): void
     {
+        $response = app(AgendaService::class)->unassignedCustomers([]);
+        if ($response['success']) {
+            $this->unassignedCustomers = $response['data'] ?? [];
+        }
+    }
+
+    #[Locked]
+    public string $idempotencyKey = '';
+
+    public array $pendingBatch = [];
+
+    public function applyBatch(array $changes = []): void
+    {
+        $this->authorize('agendas.assign');
+
         $this->loading = true;
         $this->errorMessage = null;
 
+        // Recupera el batch en caso de reintento, o inicializa con los cambios nuevos
+        $this->pendingBatch = ! empty($this->pendingBatch) && empty($changes) ? $this->pendingBatch : $changes;
+
         $payload = [
             'schedule_version' => $this->scheduleVersion,
-            'assignments' => $changes,
+            'assignments' => $this->pendingBatch,
         ];
 
         // 1. Validar request
         $validator = Validator::make($payload, (new BatchAssignmentRequest)->rules());
 
         if ($validator->fails()) {
-            $this->dispatch('agenda:notify', type: 'error', message: 'Los movimientos enviados son inválidos.');
+            $this->dispatch('rutx:feedback', type: 'error', message: 'Los movimientos enviados son inválidos.');
             $this->loading = false;
 
             return;
         }
 
-        // 2. Generar Idempotency-Key
-        $idempotencyKey = 'batch-'.Str::uuid()->toString();
+        // 2. Generar o reutilizar Idempotency-Key
+        if (empty($this->idempotencyKey)) {
+            $this->idempotencyKey = 'batch-'.Str::uuid()->toString();
+        }
 
         // 3. Mutación
-        $response = app(AgendaService::class)->assignBatch($payload, $idempotencyKey);
+        $apiPayload = BatchAssignmentRequest::formatApiPayload($validator->validated());
+        $response = app(AgendaService::class)->assignBatch($apiPayload, $this->idempotencyKey);
         $this->traceId = $response['trace_id'] ?? null;
 
         if (! $response['success']) {
             if (($response['code'] ?? '') === 'SCHEDULE_VERSION_CONFLICT') {
-                $this->dispatch('agenda:notify', type: 'warning', message: 'La agenda fue modificada por otro usuario. Recargando el tablero...');
+                $this->dispatch('rutx:feedback', type: 'warning', message: 'Conflicto de versión. El tablero ha sido recargado. Presione Guardar nuevamente para sobreescribir.');
+                // Recargamos la versión real para que el próximo intento la envíe.
                 $this->loadBoard();
             } else {
-                $this->dispatch('agenda:notify', type: 'error', message: $response['message'] ?? 'Error al guardar los cambios.');
+                $this->dispatch('rutx:feedback', type: 'error', message: $response['message'] ?? 'Error al guardar los cambios.');
                 $this->loading = false;
             }
 
             return;
         }
 
-        // Éxito: actualiza version y despacha evento
+        // Éxito: actualiza version, resetea estado pendiente e idempotencia
         $this->scheduleVersion = $response['data']['schedule_version'] ?? $this->scheduleVersion;
-        $this->dispatch('agenda:notify', type: 'success', message: 'Cambios guardados correctamente.');
+        $this->pendingBatch = [];
+        $this->idempotencyKey = '';
+        $this->dispatch('rutx:feedback', type: 'success', message: 'Cambios guardados correctamente.');
 
-        // Recarga para reflejar estado real (en el sprint final esto podría hacerse optimista,
-        // pero por la guideline §3.2 de "veracidad", recargamos)
+        // Recarga para reflejar estado real
         $this->loadBoard();
     }
 

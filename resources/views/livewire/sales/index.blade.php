@@ -35,61 +35,46 @@
             <x-loading-state message="Cargando transacciones..." />
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Folio / Fecha</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendedor</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse($sales as $sale)
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ $sale['folio'] ?? 'N/A' }}</div>
-                                <div class="text-sm text-gray-500">{{ isset($sale['date']) ? \Carbon\Carbon::parse($sale['date'])->format('d M, Y') : '' }}</div>
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <x-data-table :headers="['Folio / Fecha', 'Cliente', 'Vendedor', 'Estado', 'Total', 'Acciones']" :items="$sales">
+                <x-slot name="row">
+                    @foreach($sales as $sale)
+                        <tr class="hover:bg-rutx-surface-hover transition-colors">
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <div class="text-sm font-medium text-rutx-text-base">{{ $sale['folio'] ?? 'N/A' }}</div>
+                                <div class="text-xs text-rutx-text-muted">{{ isset($sale['date']) ? \Carbon\Carbon::parse($sale['date'])->format('d M, Y') : '' }}</div>
                             </td>
-                            <td class="px-6 py-4">
-                                <div class="text-sm text-gray-900 line-clamp-1" title="{{ $sale['customer_name'] ?? '' }}">{{ $sale['customer_name'] ?? 'Desconocido' }}</div>
+                            <td class="px-4 py-3">
+                                <div class="text-sm text-rutx-text-base line-clamp-1" title="{{ $sale['customer_name'] ?? '' }}">{{ $sale['customer_name'] ?? 'Desconocido' }}</div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">{{ $sale['seller_name'] ?? '-' }}</div>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <div class="text-sm text-rutx-text-base">{{ $sale['seller_name'] ?? '-' }}</div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-4 py-3 whitespace-nowrap">
                                 @if(($sale['status'] ?? '') === 'canceled')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Cancelada</span>
+                                    <x-status-badge status="error" label="Cancelada" />
+                                @elseif(($sale['status'] ?? '') === 'pending_cancellation')
+                                    <x-status-badge status="warning" label="Pdte. Cancelar" />
                                 @else
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Completada</span>
+                                    <x-status-badge status="success" label="Completada" />
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
+                            <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium text-rutx-text-base">
                                 <x-currency :amount="$sale['total_amount'] ?? 0" />
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="{{ route('venta.detalle', ['id' => $sale['id']]) }}" class="text-blue-600 hover:text-blue-900 inline-flex items-center">
+                            <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="{{ route('venta.detalle', ['id' => $sale['id']]) }}" class="text-rutx-primary hover:text-rutx-primary-dark inline-flex items-center">
                                     Ver Detalle
                                     <svg class="ml-1 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                 </a>
                             </td>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="px-6 py-12 text-center">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                </svg>
-                                <h3 class="mt-2 text-sm font-semibold text-gray-900">Sin registros</h3>
-                                <p class="mt-1 text-sm text-gray-500">No se encontraron ventas para los filtros actuales.</p>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    @endforeach
+                </x-slot>
+                <x-slot name="empty">
+                    Sin registros. No se encontraron ventas para los filtros actuales.
+                </x-slot>
+            </x-data-table>
             
             @if(isset($meta['total']) && $meta['total'] > 0)
             <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 sm:px-6 flex items-center justify-between">

@@ -40,8 +40,8 @@ class BatchAssignmentRequest extends FormRequest
             'assignments' => ['required', 'array', 'min:1', 'max:50'],
             'assignments.*.customer_id' => ['required', 'integer', 'min:1'],
             'assignments.*.action' => ['required', 'string', 'in:assign,move,remove'],
-            'assignments.*.seller_id' => ['nullable', 'integer', 'min:1'],
-            'assignments.*.agenda_date' => ['nullable', 'date_format:Y-m-d'],
+            'assignments.*.seller_id' => ['required_if:assignments.*.action,assign,move', 'nullable', 'integer', 'min:1'],
+            'assignments.*.agenda_date' => ['required_if:assignments.*.action,assign,move', 'nullable', 'date_format:Y-m-d'],
         ];
     }
 
@@ -53,20 +53,23 @@ class BatchAssignmentRequest extends FormRequest
      */
     public function toApiPayload(): array
     {
-        $validated = $this->validated();
+        return self::formatApiPayload($this->validated());
+    }
 
-        $assignments = array_map(function (array $item): array {
-            $entry = [
-                'customer_id' => (int) $item['customer_id'],
-                'action' => $item['action'],
+    public static function formatApiPayload(array $validated): array
+    {
+        $assignments = array_map(function ($change) {
+            $base = [
+                'customer_id' => (int) $change['customer_id'],
+                'action' => $change['action'],
             ];
 
-            if ($item['action'] !== 'remove') {
-                $entry['seller_id'] = isset($item['seller_id']) ? (int) $item['seller_id'] : null;
-                $entry['agenda_date'] = $item['agenda_date'] ?? null;
+            if (in_array($change['action'], ['assign', 'move'])) {
+                $base['seller_id'] = (int) $change['seller_id'];
+                $base['agenda_date'] = $change['agenda_date'];
             }
 
-            return $entry;
+            return $base;
         }, $validated['assignments']);
 
         return [

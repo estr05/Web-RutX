@@ -20,13 +20,13 @@ class CancellationRequestServiceTest extends TestCase
 
     public function test_create_sends_post_with_idempotency_key(): void
     {
-        Http::fake(['*/api/v2/web/sales/456/cancellations' => Http::response(['success' => true, 'data' => []], 200)]);
+        Http::fake(['*/api/v2/web/sales/456/cancellation-requests' => Http::response(['success' => true, 'data' => []], 200)]);
 
         $result = app(CancellationRequestService::class)->create(456, ['reason' => 'Cliente canceló el pedido'], 'idem-cancel-01');
 
         $this->assertTrue($result['success']);
         Http::assertSent(fn (Request $r) => $r->method() === 'POST'
-            && str_ends_with(parse_url($r->url(), PHP_URL_PATH), '/sales/456/cancellations')
+            && str_ends_with(parse_url($r->url(), PHP_URL_PATH), '/sales/456/cancellation-requests')
             && $r->hasHeader('Idempotency-Key', 'idem-cancel-01')
             && $r->data()['reason'] === 'Cliente canceló el pedido'
         );

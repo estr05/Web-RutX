@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Sales;
 
-use App\Http\Requests\CancellationCreateRequest;
 use App\Services\CancellationRequestService;
 use App\Services\SalesService;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -29,9 +27,13 @@ class Show extends Component
 
     public string $cancellationReason = '';
 
+    #[Locked]
+    public string $idempotencyKey = '';
+
     public function mount(int $saleId): void
     {
         $this->saleId = $saleId;
+        $this->idempotencyKey = (string) Str::uuid();
         $this->loadSale();
     }
 
@@ -52,43 +54,38 @@ class Show extends Component
 
     public function confirmCancellation(): void
     {
+        abort_unless(in_array('sales.cancel', session('permissions', [])), 403, 'No autorizado para cancelar ventas.');
         $this->confirmingCancellation = true;
         $this->cancellationReason = '';
+        $this->resetValidation();
     }
 
     public function cancelSale(): void
     {
+        abort_unless(in_array('sales.cancel', session('permissions', [])), 403, 'No autorizado para cancelar ventas.');
+
         $this->loading = true;
 
-        $validator = Validator::make(
-            ['reason' => $this->cancellationReason],
-            (new CancellationCreateRequest)->rules()
-        );
-
-        if ($validator->fails()) {
-            $this->dispatch('notify', type: 'error', message: $validator->errors()->first('reason'));
-            $this->loading = false;
-
-            return;
-        }
-
-        $idempotencyKey = 'cancel-'.Str::uuid()->toString();
+        $validated = $this->validate([
+            'cancellationReason' => ['required', 'string', 'min:10', 'max:500'],
+        ]);
 
         $response = app(CancellationRequestService::class)->create(
             $this->saleId,
-            $validator->validated(),
-            $idempotencyKey
+            ['reason' => $validated['cancellationReason']],
+            'cancel-'.$this->idempotencyKey
         );
 
         if (! $response['success']) {
-            $this->dispatch('notify', type: 'error', message: $response['message'] ?? 'Error al procesar la cancelación.');
+            $this->dispatch('rutx:feedback', type: 'error', message: $response['message'] ?? 'Error al procesar la cancelación.');
             $this->loading = false;
 
             return;
         }
 
         $this->confirmingCancellation = false;
-        $this->dispatch('notify', type: 'success', message: 'Solicitud de cancelación enviada correctamente.');
+        $this->idempotencyKey = (string) Str::uuid(); // Rotar token tras éxito
+        $this->dispatch('rutx:feedback', type: 'success', message: 'Solicitud de cancelación enviada correctamente.');
 
         // Recargar detalle para reflejar cambio de estado (ej: pending_cancellation)
         $this->loadSale();

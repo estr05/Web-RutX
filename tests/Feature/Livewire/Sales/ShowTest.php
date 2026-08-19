@@ -27,6 +27,7 @@ class ShowTest extends TestCase
             ], 200),
         ]);
 
+        $this->session(['permissions' => ['sales.cancel']]);
         Livewire::test(Show::class, ['saleId' => 123])
             ->assertStatus(200)
             ->assertSet('sale.folio', 'V-123');
@@ -34,15 +35,18 @@ class ShowTest extends TestCase
 
     public function test_cancels_sale_successfully(): void
     {
-        // El mount carga la venta primero
         Http::fake([
             '*/api/v2/web/sales/123' => Http::response(['success' => true, 'data' => ['id' => 123, 'status' => 'completed']], 200),
-            '*/api/v2/web/sales/123/cancellations' => Http::response(['success' => true, 'data' => []], 200),
+            '*/api/v2/web/sales/123/cancellation-requests' => Http::response(['success' => true, 'data' => []], 200),
         ]);
 
+        $this->session(['permissions' => ['sales.cancel']]);
         Livewire::test(Show::class, ['saleId' => 123])
-            ->set('cancellationReason', 'Cliente cambió de opinión, producto roto.')
+            ->call('confirmCancellation')
+            ->set('cancellationReason', 'Cliente se arrepintio de la compra, no hay fondos.')
             ->call('cancelSale')
-            ->assertDispatched('notify', type: 'success');
+            ->assertHasNoErrors()
+            ->assertDispatched('rutx:feedback', type: 'success')
+            ->assertSet('confirmingCancellation', false);
     }
 }

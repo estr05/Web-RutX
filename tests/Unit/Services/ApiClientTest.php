@@ -232,7 +232,7 @@ class ApiClientTest extends TestCase
 
         $result = app(ApiClient::class)->patch(
             '/agendas/assignments:batch',
-            ['schedule_version' => 6, 'changes' => [['customer_id' => 1, 'seller_id' => 2, 'date' => '2026-08-19']]],
+            ['schedule_version' => 6, 'assignments' => [['customer_id' => 1, 'seller_id' => 2, 'date' => '2026-08-19']]],
             ['Idempotency-Key' => 'idem-batch-001'],
         );
 
@@ -327,7 +327,7 @@ class ApiClientTest extends TestCase
             '*/api/v2/web/agendas*' => Http::response([
                 'code' => 'VALIDATION_ERROR',
                 'message' => 'El campo changes es obligatorio.',
-                'errors' => ['changes' => ['El campo changes es obligatorio.']],
+                'errors' => ['assignments' => ['El campo changes es obligatorio.']],
                 'trace_id' => '01J-patch-422',
             ], 422),
         ]);
@@ -336,7 +336,7 @@ class ApiClientTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertSame('VALIDATION_ERROR', $result['code']);
-        $this->assertSame(['changes' => ['El campo changes es obligatorio.']], $result['errors']);
+        $this->assertSame(['assignments' => ['El campo changes es obligatorio.']], $result['errors']);
         $this->assertSame('01J-patch-422', $result['trace_id']);
     }
 
