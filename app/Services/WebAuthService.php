@@ -39,8 +39,18 @@ class WebAuthService
         }
 
         $data = $result['data'] ?? [];
+        $accessToken = (string) ($data['access_token'] ?? '');
 
-        session()->put('api_token', (string) ($data['access_token'] ?? ''));
+        if ($accessToken === '') {
+            return ['success' => false, 'code' => 'INVALID_RESPONSE', 'message' => 'El servidor no devolvió un token de acceso válido.'];
+        }
+
+        $scopes = (array) ($data['scopes'] ?? $data['scope'] ?? []);
+        if (! in_array('web', $scopes, true)) {
+            return ['success' => false, 'code' => 'SCOPE_REQUIRED', 'message' => 'El token no tiene el alcance web requerido.'];
+        }
+
+        session()->put('api_token', $accessToken);
         session()->put('user', [
             'username' => (string) ($data['user']['username'] ?? $username),
             'display_name' => (string) ($data['user']['display_name'] ?? $username),
