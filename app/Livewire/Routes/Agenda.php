@@ -116,7 +116,15 @@ class Agenda extends Component
 
     public function loadUnassigned(): void
     {
-        $response = app(AgendaService::class)->unassignedCustomers([]);
+        $unassignedFilters = array_filter([
+            'search' => $this->filters['search'] ?? null,
+            'zone_id' => $this->filters['zone_id'] ?? null,
+            'route_id' => $this->filters['route_id'] ?? null,
+            'page' => $this->filters['page'] ?? 1,
+            'per_page' => $this->filters['per_page'] ?? 25,
+        ], static fn ($value) => $value !== null && $value !== '');
+
+        $response = app(AgendaService::class)->unassignedCustomers($unassignedFilters);
         if ($response['success']) {
             $this->unassignedCustomers = $response['data'] ?? [];
         }
@@ -144,6 +152,7 @@ class Agenda extends Component
 
         if (empty($this->assignSellerId) || empty($this->assignDate)) {
             $this->dispatch('rutx:feedback', type: 'warning', message: 'Seleccione vendedor y fecha antes de confirmar.');
+
             return;
         }
 
@@ -226,7 +235,7 @@ class Agenda extends Component
     {
         return array_map(fn ($day) => [
             'date' => $day['date'],
-            'label' => ($day['weekday'] ?? '').' '.\Carbon\Carbon::parse($day['date'])->format('d/m/Y'),
+            'label' => ($day['weekday'] ?? '').' '.Carbon::parse($day['date'])->format('d/m/Y'),
         ], $this->days);
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Livewire\Sales;
 
 use App\Livewire\Sales\Show;
+use Illuminate\Auth\GenericUser;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -40,7 +41,7 @@ class ShowTest extends TestCase
             '*/api/v2/web/sales/123' => Http::response(['success' => true, 'data' => ['id' => 123, 'folio' => 'V-123', 'status' => 'completed']], 200),
         ]);
 
-        $this->actingAs(new \Illuminate\Auth\GenericUser(['id' => 1]));
+        $this->actingAs(new GenericUser(['id' => 1]));
         $this->session(['permissions' => ['sales.cancel']]);
 
         Livewire::test(Show::class, ['saleId' => 123])
@@ -62,7 +63,7 @@ class ShowTest extends TestCase
             ], 200),
         ]);
 
-        $this->actingAs(new \Illuminate\Auth\GenericUser(['id' => 1]));
+        $this->actingAs(new GenericUser(['id' => 1]));
         $this->session(['permissions' => ['sales.cancel']]);
 
         Livewire::test(Show::class, ['saleId' => 456])
@@ -81,7 +82,7 @@ class ShowTest extends TestCase
             ], 200),
         ]);
 
-        $this->actingAs(new \Illuminate\Auth\GenericUser(['id' => 1]));
+        $this->actingAs(new GenericUser(['id' => 1]));
         $this->session(['permissions' => ['sales.cancel']]);
 
         Livewire::test(Show::class, ['saleId' => 123])

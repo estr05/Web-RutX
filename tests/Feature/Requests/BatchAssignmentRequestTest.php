@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Requests;
 
 use App\Http\Requests\BatchAssignmentRequest;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 

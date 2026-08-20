@@ -75,11 +75,11 @@
                     Sin registros. No se encontraron ventas para los filtros actuales.
                 </x-slot>
             </x-data-table>
-            
+
             @if(isset($meta['total']) && $meta['total'] > 0)
             <div class="bg-rutx-bg px-4 py-3 border-t border-rutx-border sm:px-6 flex items-center justify-between">
                 <div class="hidden sm:block text-sm text-rutx-text-base">
-                    Mostrando página <span class="font-medium">{{ $meta['page'] ?? 1 }}</span> de <span class="font-medium">{{ $meta['last_page'] ?? 1 }}</span> 
+                    Mostrando página <span class="font-medium">{{ $meta['page'] ?? 1 }}</span> de <span class="font-medium">{{ $meta['last_page'] ?? 1 }}</span>
                     ({{ $meta['total'] ?? 0 }} registros)
                 </div>
                 <div class="flex-1 flex justify-between sm:justify-end gap-2">

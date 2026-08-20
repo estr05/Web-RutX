@@ -31,7 +31,6 @@
                         @endif
                     </div>
                 </div>
-                
                 <div class="border-t border-rutx-border px-4 py-5 sm:p-0">
                     <dl class="sm:divide-y sm:divide-rutx-border">
                         <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -75,16 +74,16 @@
 
                 <div class="mt-4 text-sm text-rutx-text-muted">
                     <p class="mb-4">Por favor, ingrese el motivo de la cancelación. Esta acción quedará registrada para auditoría.</p>
-                    
+
                     <div class="space-y-1">
                         <label for="reason" class="block text-sm font-medium text-rutx-text-muted">Motivo (mín. 10 caracteres)</label>
-                        <textarea 
-                            id="reason" 
+                        <textarea
+                            id="reason"
                             wire:model="cancellationReason"
-                            rows="3" 
+                            rows="3"
                             class="block w-full rounded-[var(--rutx-radius-base)] border-rutx-border shadow-[var(--rutx-shadow-sm)] focus:border-rutx-error focus:ring-rutx-error sm:text-sm"
                             placeholder="Ej. El cliente rechazó la mercancía..."></textarea>
-                        
+
                         @error('cancellationReason') <span class="text-rutx-error text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
                 </div>
