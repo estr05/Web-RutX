@@ -2,17 +2,15 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
 use Illuminate\Auth\GenericUser;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void
-    {
-    }
+    public function register(): void {}
 
     public function boot(): void
     {

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Livewire\Sales;
 
+use App\Http\Requests\CancellationCreateRequest;
 use App\Services\CancellationRequestService;
 use App\Services\SalesService;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -54,7 +56,7 @@ class Show extends Component
 
     public function confirmCancellation(): void
     {
-        abort_unless(in_array('sales.cancel', session('permissions', [])), 403, 'No autorizado para cancelar ventas.');
+        $this->authorize('sales.cancel');
         $this->confirmingCancellation = true;
         $this->cancellationReason = '';
         $this->resetValidation();
@@ -62,17 +64,26 @@ class Show extends Component
 
     public function cancelSale(): void
     {
-        abort_unless(in_array('sales.cancel', session('permissions', [])), 403, 'No autorizado para cancelar ventas.');
+        $this->authorize('sales.cancel');
 
         $this->loading = true;
 
-        $validated = $this->validate([
-            'cancellationReason' => ['required', 'string', 'min:10', 'max:500'],
-        ]);
+        $validator = Validator::make(
+            ['reason' => $this->cancellationReason],
+            (new CancellationCreateRequest)->rules()
+        );
+
+        if ($validator->fails()) {
+            $this->setErrorBag($validator->errors()->toArray());
+            $this->addError('cancellationReason', $validator->errors()->first('reason'));
+            $this->loading = false;
+
+            return;
+        }
 
         $response = app(CancellationRequestService::class)->create(
             $this->saleId,
-            ['reason' => $validated['cancellationReason']],
+            $validator->validated(),
             'cancel-'.$this->idempotencyKey
         );
 
