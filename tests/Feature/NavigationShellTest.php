@@ -85,9 +85,9 @@ class NavigationShellTest extends TestCase
         $venta = config('navigation.modules.venta');
 
         $this->assertSame(
-            'venta.reportes',
+            'venta.transacciones',
             $venta['default_route'],
-            'La entrada inicial del chasis debe ser venta.reportes.',
+            'La entrada inicial del chasis debe ser venta.transacciones.',
         );
     }
 
@@ -99,8 +99,20 @@ class NavigationShellTest extends TestCase
             $modules,
         ));
 
-        // customers:2 + products:3 + inventory:3 + venta:3 + ruta:2 + settings:3 = 16
-        $this->assertSame(16, $viewCount, 'La configuración de navegación debe declarar exactamente 16 vistas.');
+        // 16 originales del Sprint 3 + 2 del Sprint 5 (Agenda, Transacciones) = 18
+        $this->assertSame(
+            18,
+            $viewCount,
+            'La configuración de navegación debe declarar exactamente 18 vistas.',
+        );
+    }
+
+    public function test_all_modules_specify_valid_icon_and_permissions(): void
+    {
+        foreach (config('navigation.modules', []) as $module) {
+            $this->assertArrayHasKey('icon', $module);
+            $this->assertArrayHasKey('permission', $module);
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -134,7 +146,7 @@ class NavigationShellTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // Cobertura completa: Recorrer las 16 vistas declaradas (sesión autenticada)
+    // Cobertura completa: Recorrer las 18 vistas declaradas (sesión autenticada)
     // -------------------------------------------------------------------------
 
     public function test_every_declared_view_renders_its_navigation_context(): void
@@ -155,6 +167,8 @@ class NavigationShellTest extends TestCase
                 'config.roles.read',
                 'config.zones.read',
                 'notifications.read',
+                'agendas.read',
+                'sales.read',
             ],
         ]);
 

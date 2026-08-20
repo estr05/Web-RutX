@@ -22,4 +22,9 @@ class RouteController extends Controller
     {
         return view('modules.ruta.jornada');
     }
+
+    public function agenda()
+    {
+        return view('modules.ruta.agenda');
+    }
 }

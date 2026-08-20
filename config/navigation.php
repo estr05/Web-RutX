@@ -88,8 +88,13 @@ return [
             'label' => 'Venta',
             'icon' => 'shopping-cart',
             'permission' => 'module.venta.access',
-            'default_route' => 'venta.reportes', // entrada inicial del chasis
+            'default_route' => 'venta.transacciones', // Ahora por defecto va al listado
             'views' => [
+                'venta.transacciones' => [
+                    'label' => 'Listado de Transacciones',
+                    'icon' => 'currency-dollar',
+                    'permission' => 'sales.read',
+                ],
                 'venta.reportes' => [
                     'label' => 'Reportes y Gráficas',
                     'icon' => 'chart-pie',
@@ -112,8 +117,13 @@ return [
             'label' => 'Ruta',
             'icon' => 'truck',
             'permission' => 'module.ruta.access',
-            'default_route' => 'ruta.mapa',
+            'default_route' => 'ruta.agenda',
             'views' => [
+                'ruta.agenda' => [
+                    'label' => 'Agenda',
+                    'icon' => 'calendar-days',
+                    'permission' => 'agendas.read',
+                ],
                 'ruta.mapa' => [
                     'label' => 'Mapa en tiempo real',
                     'icon' => 'map',

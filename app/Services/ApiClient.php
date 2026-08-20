@@ -94,6 +94,37 @@ class ApiClient
     }
 
     /**
+     * PATCH autenticado para comandos batch que modifican estado.
+     *
+     * Úsese exclusivamente con Idempotency-Key cuando el comando altere estado
+     * (ej. PATCH /agendas/assignments:batch). Conserva la misma política de
+     * seguridad que post(): JSON, token de sesión, timeout, TLS, normalización
+     * de envelope y registro seguro de trace_id.
+     *
+     * @param  array<string, string>  $headers  Headers adicionales (ej. Idempotency-Key)
+     * @param  array<string, mixed>  $payload
+     */
+    public function patch(string $endpoint, array $payload, array $headers = []): array
+    {
+        $token = $this->tokenOrUnauthorized();
+
+        if ($token === null) {
+            return $this->error('UNAUTHORIZED', __('Debes iniciar sesión nuevamente.'), null);
+        }
+
+        try {
+            $response = $this->request()
+                ->withToken($token)
+                ->withHeaders($headers)
+                ->patch($endpoint, $payload);
+        } catch (ConnectionException) {
+            return $this->error('API_UNAVAILABLE', __('No se pudo conectar con el servicio.'), null);
+        }
+
+        return $this->resolve($response);
+    }
+
+    /**
      * POST público SIN token — EXCLUSIVO para POST /api/v2/web/auth/login,
      * único endpoint público del contrato v2. Mantiene el único punto de
      * salida HTTP de la aplicación; cualquier otro uso es error de diseño.
