@@ -2,20 +2,20 @@
     <x-filter-bar class="mb-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Buscar (Folio/Cliente)</label>
-                <input type="text" wire:model.live.debounce.500ms="filters.search" placeholder="Folio o nombre..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                <label class="block text-sm font-medium text-rutx-text-base mb-1">Buscar (Folio/Cliente)</label>
+                <input type="text" wire:model.live.debounce.500ms="filters.search" placeholder="Folio o nombre..." class="block w-full rounded-[var(--rutx-radius-base)] border-rutx-border shadow-[var(--rutx-shadow-sm)] focus:border-rutx-primary focus:ring-rutx-primary sm:text-sm">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Desde</label>
-                <input type="date" wire:model.live.debounce.500ms="filters.date_from" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                <label class="block text-sm font-medium text-rutx-text-base mb-1">Desde</label>
+                <input type="date" wire:model.live.debounce.500ms="filters.date_from" class="block w-full rounded-[var(--rutx-radius-base)] border-rutx-border shadow-[var(--rutx-shadow-sm)] focus:border-rutx-primary focus:ring-rutx-primary sm:text-sm">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
-                <input type="date" wire:model.live.debounce.500ms="filters.date_to" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                <label class="block text-sm font-medium text-rutx-text-base mb-1">Hasta</label>
+                <input type="date" wire:model.live.debounce.500ms="filters.date_to" class="block w-full rounded-[var(--rutx-radius-base)] border-rutx-border shadow-[var(--rutx-shadow-sm)] focus:border-rutx-primary focus:ring-rutx-primary sm:text-sm">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                <select wire:model.live="filters.status" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                <label class="block text-sm font-medium text-rutx-text-base mb-1">Estado</label>
+                <select wire:model.live="filters.status" class="block w-full rounded-[var(--rutx-radius-base)] border-rutx-border shadow-[var(--rutx-shadow-sm)] focus:border-rutx-primary focus:ring-rutx-primary sm:text-sm">
                     <option value="">Todos</option>
                     <option value="completed">Completadas</option>
                     <option value="canceled">Canceladas</option>
@@ -31,11 +31,11 @@
     @endif
 
     <div class="relative min-h-[300px]">
-        <div wire:loading wire:target="loadSales, filters" class="absolute inset-0 z-10 bg-white/50 backdrop-blur-sm flex items-center justify-center rounded-lg">
+        <div wire:loading wire:target="loadSales, filters" class="absolute inset-0 z-10 bg-rutx-backdrop/50 backdrop-blur-sm flex items-center justify-center rounded-[var(--rutx-radius-lg)]">
             <x-loading-state message="Cargando transacciones..." />
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="bg-rutx-surface rounded-[var(--rutx-radius-lg)] shadow-[var(--rutx-shadow-sm)] overflow-hidden border border-rutx-border">
             <x-data-table :headers="['Folio / Fecha', 'Cliente', 'Vendedor', 'Estado', 'Total', 'Acciones']" :items="$sales">
                 <x-slot name="row">
                     @foreach($sales as $sale)
@@ -77,16 +77,16 @@
             </x-data-table>
             
             @if(isset($meta['total']) && $meta['total'] > 0)
-            <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 sm:px-6 flex items-center justify-between">
-                <div class="hidden sm:block text-sm text-gray-700">
+            <div class="bg-rutx-bg px-4 py-3 border-t border-rutx-border sm:px-6 flex items-center justify-between">
+                <div class="hidden sm:block text-sm text-rutx-text-base">
                     Mostrando página <span class="font-medium">{{ $meta['page'] ?? 1 }}</span> de <span class="font-medium">{{ $meta['last_page'] ?? 1 }}</span> 
                     ({{ $meta['total'] ?? 0 }} registros)
                 </div>
                 <div class="flex-1 flex justify-between sm:justify-end gap-2">
-                    <button wire:click="setPage({{ max(1, ($meta['page'] ?? 1) - 1) }})" @disabled(($meta['page'] ?? 1) <= 1) class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button wire:click="setPage({{ max(1, ($meta['page'] ?? 1) - 1) }})" @disabled(($meta['page'] ?? 1) <= 1) class="relative inline-flex items-center px-4 py-2 border border-rutx-border text-sm font-medium rounded-[var(--rutx-radius-base)] text-rutx-text-base bg-rutx-surface hover:bg-rutx-bg disabled:opacity-50 disabled:cursor-not-allowed">
                         Anterior
                     </button>
-                    <button wire:click="setPage({{ min($meta['last_page'] ?? 1, ($meta['page'] ?? 1) + 1) }})" @disabled(($meta['page'] ?? 1) >= ($meta['last_page'] ?? 1)) class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button wire:click="setPage({{ min($meta['last_page'] ?? 1, ($meta['page'] ?? 1) + 1) }})" @disabled(($meta['page'] ?? 1) >= ($meta['last_page'] ?? 1)) class="relative inline-flex items-center px-4 py-2 border border-rutx-border text-sm font-medium rounded-[var(--rutx-radius-base)] text-rutx-text-base bg-rutx-surface hover:bg-rutx-bg disabled:opacity-50 disabled:cursor-not-allowed">
                         Siguiente
                     </button>
                 </div>

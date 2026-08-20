@@ -19,25 +19,22 @@
                     @endforeach
                 </select>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-rutx-text-base mb-1">Desde</label>
-                <input type="date" wire:model.live.debounce.500ms="filters.date_from" class="block w-full rounded-[var(--rutx-radius-base)] border-rutx-border shadow-[var(--rutx-shadow-sm)] focus:border-rutx-primary focus:ring-rutx-primary sm:text-sm">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-rutx-text-base mb-1">Hasta</label>
-                <input type="date" wire:model.live.debounce.500ms="filters.date_to" class="block w-full rounded-[var(--rutx-radius-base)] border-rutx-border shadow-[var(--rutx-shadow-sm)] focus:border-rutx-primary focus:ring-rutx-primary sm:text-sm">
-            </div>
+            <x-date-input id="date-from" label="Desde" wire:model.live.debounce.500ms="filters.date_from" />
+            <x-date-input id="date-to" label="Hasta" wire:model.live.debounce.500ms="filters.date_to" />
         </div>
 
         <x-slot:actions>
-            <button
-                type="button"
-                wire:click="applyBatch"
-                wire:loading.attr="disabled"
-                class="inline-flex items-center px-4 py-2 border border-transparent shadow-[var(--rutx-shadow-sm)] text-sm font-medium rounded-[var(--rutx-radius-base)] text-white bg-rutx-primary hover:bg-rutx-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rutx-primary disabled:opacity-50"
-            >
-                Guardar Cambios Pendientes
-            </button>
+            @can('agendas.assign')
+                <button
+                    type="button"
+                    wire:click="applyBatch"
+                    wire:loading.attr="disabled"
+                    @disabled(empty($pendingBatch))
+                    class="inline-flex items-center px-4 py-2 border border-transparent shadow-[var(--rutx-shadow-sm)] text-sm font-medium rounded-[var(--rutx-radius-base)] text-white {{ count($pendingBatch) > 0 ? 'bg-rutx-warning hover:bg-rutx-warning-dark' : 'bg-rutx-primary hover:bg-rutx-primary-dark' }} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rutx-primary disabled:opacity-50"
+                >
+                    Guardar{{ count($pendingBatch) > 0 ? ' ('.count($pendingBatch).')' : '' }}
+                </button>
+            @endcan
         </x-slot:actions>
     </x-filter-bar>
 
@@ -67,22 +64,22 @@
                                 <span class="block text-xs font-medium text-rutx-text-muted uppercase tracking-wider">{{ $day['weekday'] ?? 'Día' }}</span>
                                 <span class="block text-lg font-bold text-rutx-text-base">{{ \Carbon\Carbon::parse($day['date'])->format('d M') }}</span>
                             </div>
-                            <x-status-badge status="info" label="{{ $day['total_customers'] ?? 0 }}" />
+                            <x-status-badge status="success" label="{{ $day['total_customers'] ?? 0 }}" />
                         </div>
 
                         <div class="flex-1 p-2 bg-rutx-bg/50 space-y-2 overflow-y-auto" style="max-height: 60vh;">
                             @forelse($day['sellers'] ?? [] as $seller)
                                 <div class="bg-rutx-surface border border-rutx-border rounded-[var(--rutx-radius-base)] p-3 shadow-[var(--rutx-shadow-sm)] hover:shadow transition-shadow">
                                     <div class="flex justify-between items-start mb-2">
-                                        <div class="font-medium text-sm text-rutx-text-base line-clamp-1" title="{{ $seller['name'] }}">
-                                            {{ $seller['name'] }}
+                                        <div class="font-medium text-sm text-rutx-text-base line-clamp-1" title="{{ $seller['seller_name'] ?? $seller['name'] ?? '' }}">
+                                            {{ $seller['seller_name'] ?? $seller['name'] ?? 'Vendedor' }}
                                         </div>
                                     </div>
                                     <div class="flex items-center text-xs text-rutx-text-muted mb-1">
                                         {{ $seller['route_name'] ?? 'Ruta Sin Nombre' }}
                                     </div>
                                     <div class="mt-2 flex justify-between items-center">
-                                        <x-status-badge status="success" label="{{ $seller['customers_count'] ?? 0 }} cli" />
+                                        <x-status-badge status="success" label="{{ $seller['customers_count'] ?? $seller['customer_count'] ?? 0 }} cli" />
                                     </div>
                                 </div>
                             @empty
@@ -110,6 +107,17 @@
                                 <div class="text-xs text-rutx-text-muted mt-1">
                                     {{ $customer['address'] ?? 'Sin dirección' }}
                                 </div>
+                                @can('agendas.assign')
+                                    <div class="mt-2">
+                                        <button
+                                            type="button"
+                                            wire:click="openAssignModal({{ $customer['customer_id'] }})"
+                                            class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-[var(--rutx-radius-base)] text-rutx-primary bg-rutx-primary/10 hover:bg-rutx-primary/20 transition-colors"
+                                        >
+                                            + Asignar
+                                        </button>
+                                    </div>
+                                @endcan
                             </div>
                         @empty
                             <div class="text-center py-4 text-xs text-rutx-text-muted">No hay clientes pendientes</div>
@@ -119,4 +127,97 @@
             </div>
         @endif
     </div>
+
+    <!-- Resumen de movimientos pendientes -->
+    @if(!empty($pendingBatch) && count($pendingBatch) > 0)
+        <div class="mt-6 bg-rutx-surface rounded-[var(--rutx-radius-lg)] shadow-[var(--rutx-shadow-sm)] border border-rutx-border overflow-hidden">
+            <div class="bg-rutx-bg px-4 py-3 border-b border-rutx-border flex justify-between items-center">
+                <span class="text-sm font-bold text-rutx-text-base">Movimientos Pendientes ({{ count($pendingBatch) }})</span>
+                <x-status-badge status="warning" label="Sin guardar" />
+            </div>
+            <div class="p-3 space-y-2">
+                @foreach($pendingBatch as $index => $change)
+                    <div class="flex items-center justify-between bg-rutx-bg/50 rounded-[var(--rutx-radius-base)] px-3 py-2 border border-rutx-border">
+                        <div class="flex items-center gap-2 text-sm text-rutx-text-base">
+                            @if($change['action'] === 'assign')
+                                <x-status-badge status="success" label="Asignar" />
+                                <span>Cliente #{{ $change['customer_id'] }} → Vendedor #{{ $change['seller_id'] }} el {{ $change['agenda_date'] }}</span>
+                            @elseif($change['action'] === 'move')
+                                <x-status-badge status="warning" label="Mover" />
+                                <span>Cliente #{{ $change['customer_id'] }} → Vendedor #{{ $change['seller_id'] }} el {{ $change['agenda_date'] }}</span>
+                            @else
+                                <x-status-badge status="error" label="Quitar" />
+                                <span>Cliente #{{ $change['customer_id'] }}</span>
+                            @endif
+                        </div>
+                        <button
+                            type="button"
+                            wire:click="removePendingAssignment({{ $index }})"
+                            class="text-rutx-text-muted hover:text-rutx-error transition-colors p-1"
+                            title="Deshacer"
+                        >
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal de Asignación -->
+    <x-modal wire:model="showAssignModal" maxWidth="md">
+        <div class="px-6 py-4">
+            <div class="text-lg font-medium text-rutx-text-base">
+                Asignar Cliente
+            </div>
+
+            <div class="mt-4 text-sm text-rutx-text-muted space-y-4">
+                <p>Seleccione el vendedor y la fecha para asignar el cliente.</p>
+
+                <div>
+                    <label for="assign-seller" class="block text-sm font-medium text-rutx-text-muted mb-1">Vendedor</label>
+                    <select
+                        id="assign-seller"
+                        wire:model="assignSellerId"
+                        class="block w-full rounded-[var(--rutx-radius-base)] border-rutx-border shadow-[var(--rutx-shadow-sm)] focus:border-rutx-primary focus:ring-rutx-primary sm:text-sm"
+                    >
+                        <option value="">Seleccionar vendedor...</option>
+                        @foreach($this->availableSellers as $seller)
+                            <option value="{{ $seller['seller_id'] }}">{{ $seller['seller_name'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label for="assign-date" class="block text-sm font-medium text-rutx-text-muted mb-1">Fecha</label>
+                    <select
+                        id="assign-date"
+                        wire:model="assignDate"
+                        class="block w-full rounded-[var(--rutx-radius-base)] border-rutx-border shadow-[var(--rutx-shadow-sm)] focus:border-rutx-primary focus:ring-rutx-primary sm:text-sm"
+                    >
+                        <option value="">Seleccionar fecha...</option>
+                        @foreach($this->availableDates as $dateOption)
+                            <option value="{{ $dateOption['date'] }}">{{ $dateOption['label'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-row justify-end px-6 py-4 bg-rutx-bg text-right gap-2 rounded-b-lg">
+            <button wire:click="closeAssignModal" type="button" class="inline-flex justify-center px-4 py-2 text-sm font-medium text-rutx-text-muted bg-rutx-surface border border-rutx-border rounded-[var(--rutx-radius-base)] shadow-[var(--rutx-shadow-sm)] hover:bg-rutx-surface-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rutx-border">
+                Cancelar
+            </button>
+            <button
+                wire:click="submitAssignment"
+                wire:loading.attr="disabled"
+                type="button"
+                @disabled(empty($assignSellerId) || empty($assignDate))
+                class="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-rutx-primary border border-transparent rounded-[var(--rutx-radius-base)] shadow-[var(--rutx-shadow-sm)] hover:bg-rutx-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rutx-primary disabled:opacity-50"
+            >
+                <span wire:loading.remove wire:target="submitAssignment">Confirmar</span>
+                <span wire:loading wire:target="submitAssignment">Procesando...</span>
+            </button>
+        </div>
+    </x-modal>
 </div>

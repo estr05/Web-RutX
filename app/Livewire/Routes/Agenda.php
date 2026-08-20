@@ -53,6 +53,15 @@ class Agenda extends Component
 
     public ?string $traceId = null;
 
+    // Assignment modal state
+    public bool $showAssignModal = false;
+
+    public ?string $assignCustomerId = null;
+
+    public ?string $assignSellerId = null;
+
+    public ?string $assignDate = null;
+
     public function mount(): void
     {
         // Por defecto: semana actual (Lunes a Domingo)
@@ -113,6 +122,114 @@ class Agenda extends Component
         }
     }
 
+    public function openAssignModal(string $customerId): void
+    {
+        $this->assignCustomerId = (string) $customerId;
+        $this->assignSellerId = null;
+        $this->assignDate = null;
+        $this->showAssignModal = true;
+    }
+
+    public function closeAssignModal(): void
+    {
+        $this->showAssignModal = false;
+        $this->assignCustomerId = null;
+        $this->assignSellerId = null;
+        $this->assignDate = null;
+    }
+
+    public function submitAssignment(): void
+    {
+        $this->authorize('agendas.assign');
+
+        if (empty($this->assignSellerId) || empty($this->assignDate)) {
+            $this->dispatch('rutx:feedback', type: 'warning', message: 'Seleccione vendedor y fecha antes de confirmar.');
+            return;
+        }
+
+        $this->queueAssignment(
+            (int) $this->assignCustomerId,
+            (int) $this->assignSellerId,
+            $this->assignDate,
+        );
+
+        $this->dispatch('rutx:feedback', type: 'info', message: 'Movimiento en cola. Presione Guardar para aplicar.');
+        $this->closeAssignModal();
+    }
+
+    public function queueAssignment(int $customerId, int $sellerId, string $agendaDate): void
+    {
+        $this->authorize('agendas.assign');
+
+        $this->pendingBatch[] = [
+            'customer_id' => $customerId,
+            'seller_id' => $sellerId,
+            'agenda_date' => $agendaDate,
+            'action' => 'assign',
+        ];
+    }
+
+    public function queueRemoval(int $customerId): void
+    {
+        $this->authorize('agendas.assign');
+
+        $this->pendingBatch[] = [
+            'customer_id' => $customerId,
+            'seller_id' => null,
+            'agenda_date' => null,
+            'action' => 'remove',
+        ];
+
+        $this->dispatch('rutx:feedback', type: 'info', message: 'Movimiento en cola. Presione Guardar para aplicar.');
+    }
+
+    public function removePendingAssignment(int $index): void
+    {
+        $this->authorize('agendas.assign');
+
+        array_splice($this->pendingBatch, $index, 1);
+    }
+
+    /**
+     * Vendedores únicos derivados de los días del tablero.
+     * No se usa options.routes — la fuente son los días (contrato §11).
+     *
+     * @return array<int, array{seller_id: int, seller_name: string}>
+     */
+    public function getAvailableSellersProperty(): array
+    {
+        $seen = [];
+        $sellers = [];
+
+        foreach ($this->days as $day) {
+            foreach ($day['sellers'] ?? [] as $seller) {
+                $id = (int) $seller['seller_id'];
+                if (! isset($seen[$id])) {
+                    $seen[$id] = true;
+                    $sellers[] = [
+                        'seller_id' => $id,
+                        'seller_name' => $seller['seller_name'] ?? $seller['name'] ?? "Vendedor #{$id}",
+                    ];
+                }
+            }
+        }
+
+        return $sellers;
+    }
+
+    /**
+     * Fechas únicas de los días del tablero para el select del modal.
+     *
+     * @return array<int, array{date: string, label: string}>
+     */
+    public function getAvailableDatesProperty(): array
+    {
+        return array_map(fn ($day) => [
+            'date' => $day['date'],
+            'label' => ($day['weekday'] ?? '').' '.\Carbon\Carbon::parse($day['date'])->format('d/m/Y'),
+        ], $this->days);
+    }
+
     #[Locked]
     public string $idempotencyKey = '';
 
@@ -127,6 +244,13 @@ class Agenda extends Component
 
         // Recupera el batch en caso de reintento, o inicializa con los cambios nuevos
         $this->pendingBatch = ! empty($this->pendingBatch) && empty($changes) ? $this->pendingBatch : $changes;
+
+        if (empty($this->pendingBatch)) {
+            $this->dispatch('rutx:feedback', type: 'info', message: 'No hay movimientos pendientes para guardar.');
+            $this->loading = false;
+
+            return;
+        }
 
         $payload = [
             'schedule_version' => $this->scheduleVersion,
