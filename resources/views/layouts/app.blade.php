@@ -33,7 +33,8 @@
 </head>
 <body class="bg-rutx-bg text-rutx-text font-sans antialiased">
 
-    <div class="min-h-screen flex flex-col">
+    {{-- Shell acotado al viewport: topbar y sidebar estáticos, solo el contenido scrollea --}}
+    <div class="h-screen flex flex-col">
 
         {{-- Topbar (64 px) — lee módulos de config/navigation.php --}}
         <x-app-topbar />
