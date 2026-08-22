@@ -7,6 +7,7 @@ namespace App\Livewire\Reports;
 use App\Http\Requests\ReportFilterRequest;
 use App\Services\DashboardService;
 use App\Services\ReportsService;
+use App\Support\DashboardKpiCatalog;
 use App\Support\Feedback;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -45,17 +46,125 @@ class ReportesGraficas extends Component
     }
 
     /**
-     * KPIs del tablero (DashboardSummaryResponse → 7 tarjetas).
+     * Respuesta cruda consolidada de DashboardService (summary).
+     * Evita llamadas HTTP duplicadas por render (guidelines §2.1).
      */
-    public function getKpiProperty(): array
+    public function getDashboardProperty(): array
     {
-        $result = app(DashboardService::class)->summary($this->filterPayload());
-
-        return $result['success'] ? ($result['data']['kpi'] ?? []) : [];
+        return app(DashboardService::class)->summary($this->filterPayload());
     }
 
     /**
-     * Serie de ventas adaptada al contrato de <x-chart> (labels + datasets).
+     * Divisa contractual del dashboard (ej. 'MXN').
+     */
+    public function getCurrencyProperty(): string
+    {
+        $dashboard = $this->dashboard;
+
+        return $dashboard['success'] ? ($dashboard['data']['meta']['currency'] ?? '') : '';
+    }
+
+    /**
+     * KPIs del tablero enriquecidos con el catálogo visual (DashboardSummaryResponse → 7 tarjetas).
+     */
+    public function getKpiProperty(): array
+    {
+        $dashboard = $this->dashboard;
+
+        if (! $dashboard['success']) {
+            return [];
+        }
+
+        $rawKpis = $dashboard['data']['kpi'] ?? [];
+
+        return array_map(function (array $kpi): array {
+            $label = $kpi['label'] ?? '';
+            $meta = DashboardKpiCatalog::get($label);
+
+            return array_merge($kpi, [
+                'format' => $meta['format'],
+                'iconName' => $meta['iconName'],
+                'group' => $meta['group'],
+            ]);
+        }, $rawKpis);
+    }
+
+    /**
+     * Respuesta cruda consolidada de ReportsService (report).
+     * Evita llamadas HTTP duplicadas al construir tabla, totales y routeChart.
+     */
+    public function getReportDataProperty(): array
+    {
+        return app(ReportsService::class)->report($this->filterPayload());
+    }
+
+    /**
+     * Movimientos por ruta (SalesReportResponse.by_route → tabla).
+     */
+    public function getMovimientosProperty(): array
+    {
+        $result = $this->reportData;
+
+        return $result['success'] ? ($result['data']['by_route'] ?? []) : [];
+    }
+
+    /**
+     * Totales consolidados del reporte (SalesReportResponse.totals → footer tabla).
+     */
+    public function getTotalsProperty(): array
+    {
+        $result = $this->reportData;
+
+        if (! $result['success']) {
+            return [];
+        }
+
+        $totals = $result['data']['totals'] ?? [];
+        if (! empty($totals)) {
+            return $totals;
+        }
+
+        $movimientos = $this->movimientos;
+
+        return [
+            'pieces' => array_sum(array_column($movimientos, 'pieces')),
+            'cash_amount' => array_sum(array_column($movimientos, 'cash_amount')),
+            'credit_amount' => array_sum(array_column($movimientos, 'credit_amount')),
+            'total_amount' => array_sum(array_column($movimientos, 'total_amount')),
+            'sales_amount' => array_sum(array_column($movimientos, 'total_amount')),
+        ];
+    }
+
+    /**
+     * Gráfica de barras comparativa Contado vs Crédito por ruta (ReportsService::report()['by_route']).
+     */
+    public function getRouteChartProperty(): array
+    {
+        $byRoute = $this->movimientos;
+
+        if (empty($byRoute)) {
+            return ['labels' => [], 'datasets' => []];
+        }
+
+        return [
+            'labels' => array_column($byRoute, 'route_name'),
+            'datasets' => [
+                [
+                    'label' => 'Contado',
+                    'data' => array_map(fn (array $r): float => (float) ($r['cash_amount'] ?? 0.0), $byRoute),
+                    'colorToken' => '--rutx-chart-blue',
+                ],
+                [
+                    'label' => 'Crédito',
+                    'data' => array_map(fn (array $r): float => (float) ($r['credit_amount'] ?? 0.0), $byRoute),
+                    'colorToken' => '--rutx-chart-cyan',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Serie temporal de ventas para comparativas futuras (<x-chart>).
      */
     public function getSeriesProperty(): array
     {
@@ -73,16 +182,6 @@ class ReportesGraficas extends Component
                 ['label' => 'Venta', 'data' => array_column($series, 'amount')],
             ],
         ];
-    }
-
-    /**
-     * Movimientos por ruta (SalesReportResponse.by_route → tabla).
-     */
-    public function getMovimientosProperty(): array
-    {
-        $result = app(ReportsService::class)->report($this->filterPayload());
-
-        return $result['success'] ? ($result['data']['by_route'] ?? []) : [];
     }
 
     /**

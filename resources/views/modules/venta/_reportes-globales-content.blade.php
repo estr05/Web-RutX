@@ -51,6 +51,7 @@
                 :value="(float) $card['value']"
                 :delta="$card['delta']"
                 :status="$card['status']"
+                format="currency"
             />
         @endforeach
     </div>

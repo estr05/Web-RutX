@@ -48,4 +48,21 @@ class VisualComponentsTest extends TestCase
         $response->assertSee('Ruta Norte — Retraso en visita', false);
         $response->assertSee('Ruta Sur — Jornada detenida', false);
     }
+
+    public function test_navigation_icon_renders_credit_card_and_clipboard_list_svgs(): void
+    {
+        $view = $this->blade('<x-navigation-icon name="credit-card" /><x-navigation-icon name="clipboard-list" />');
+
+        $view->assertSee('data-navigation-icon="credit-card"', false);
+        $view->assertSee('data-navigation-icon="clipboard-list"', false);
+    }
+
+    public function test_currency_component_renders_accessible_null_state(): void
+    {
+        $view = $this->blade('<x-currency :amount="null" />');
+
+        $view->assertSee('aria-label="No disponible"', false);
+        $view->assertSee('---');
+        $view->assertSee('No disponible');
+    }
 }

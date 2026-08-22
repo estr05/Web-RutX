@@ -37,6 +37,7 @@
                     :value="$kpi['value']"
                     :delta="$kpi['delta']"
                     :status="$kpi['status']"
+                    format="text"
                 />
             @empty
                 <p class="text-sm text-rutx-text-muted py-6 text-center">Sin rutas en el periodo.</p>
