@@ -50,9 +50,10 @@ class ReportsServiceTest extends TestCase
 
         $this->assertTrue($result['success']);
         $this->assertSame('MXN', $result['data']['totals']['currency']);
-        $this->assertSame(0.00, $result['data']['totals']['sales_amount']);
-        $this->assertSame(0, $result['data']['totals']['pieces']);
-        $this->assertSame([], $result['data']['by_route']);
+        $this->assertSame(1500.0, $result['data']['totals']['sales_amount']);
+        $this->assertSame(30, $result['data']['totals']['pieces']);
+        $this->assertCount(2, $result['data']['by_route']);
+        $this->assertSame('Ruta Stub Norte', $result['data']['by_route'][0]['route_name']);
         $this->assertSame('unknown', $result['data']['status']);
 
         Http::assertNothingSent();
