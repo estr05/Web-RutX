@@ -12,8 +12,17 @@
             <thead>
                 <tr class="bg-rutx-bg border-b border-rutx-border">
                     @foreach($headers as $header)
-                        <th class="px-4 py-3 text-xs font-semibold text-rutx-primary uppercase tracking-wider sticky top-0 bg-rutx-bg shadow-sm z-10">
-                            {{ $header }}
+                        @php
+                            $label = is_array($header) ? ($header['label'] ?? '') : $header;
+                            $align = is_array($header) ? ($header['align'] ?? 'left') : 'left';
+                            $alignClass = match($align) {
+                                'right' => 'text-right',
+                                'center' => 'text-center',
+                                default => 'text-left',
+                            };
+                        @endphp
+                        <th class="px-4 py-3 text-xs font-semibold text-rutx-primary uppercase tracking-wider sticky top-0 bg-rutx-bg shadow-sm z-10 {{ $alignClass }}">
+                            {{ $label }}
                         </th>
                     @endforeach
                 </tr>

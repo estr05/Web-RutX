@@ -101,7 +101,16 @@
     />
 
     <div class="mt-6">
-        <x-data-table :headers="['Ruta', 'Piezas', 'Contado', 'Crédito', 'Total']" :items="$this->movimientos">
+        <x-data-table
+            :headers="[
+                ['label' => 'Ruta', 'align' => 'left'],
+                ['label' => 'Piezas', 'align' => 'right'],
+                ['label' => 'Contado', 'align' => 'right'],
+                ['label' => 'Crédito', 'align' => 'right'],
+                ['label' => 'Total', 'align' => 'right'],
+            ]"
+            :items="$this->movimientos"
+        >
             <x-slot:row>
                 @foreach ($this->movimientos as $row)
                     <tr x-show="Math.ceil({{ $loop->iteration }} / perPage) === page"
