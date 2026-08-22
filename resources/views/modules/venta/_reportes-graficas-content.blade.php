@@ -77,6 +77,19 @@
         @endforeach
     </div>
 
+    {{-- GrÃ¡fica temporal de ventas --}}
+    <x-chart
+        type="line"
+        :labels="$this->series['labels'] ?? []"
+        :datasets="$this->series['datasets'] ?? []"
+        format="currency"
+        :currency="$this->currency"
+        :height="340"
+        summary="Ventas a travÃ©s del tiempo"
+        class="mb-6"
+    />
+
+    {{-- GrÃ¡fica comparativa por ruta --}}
     <x-chart
         type="bar"
         :labels="$this->routeChart['labels'] ?? []"
