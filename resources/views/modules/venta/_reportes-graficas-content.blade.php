@@ -110,11 +110,11 @@
                     <tr class="border-t-2 border-rutx-border bg-rutx-surface-grey">
                         <td class="px-4 py-3 text-sm font-bold text-rutx-primary">Total período</td>
                         <td class="px-4 py-3 text-sm text-right font-mono font-bold text-rutx-text">{{ $this->totals['pieces'] ?? 0 }}</td>
-                        <td class="px-4 py-3 text-sm text-right font-bold"><x-currency :amount="array_sum(array_column($this->movimientos, 'cash_amount'))" /></td>
-                        <td class="px-4 py-3 text-sm text-right font-bold"><x-currency :amount="array_sum(array_column($this->movimientos, 'credit_amount'))" /></td>
+                        <td class="px-4 py-3 text-sm text-right font-bold"><x-currency :amount="$this->totals['cash_amount'] ?? 0" /></td>
+                        <td class="px-4 py-3 text-sm text-right font-bold"><x-currency :amount="$this->totals['credit_amount'] ?? 0" /></td>
                         <td class="px-4 py-3 text-sm text-right font-bold">
                             <span class="font-mono font-bold text-rutx-accent">
-                                <x-currency :amount="$this->totals['sales_amount'] ?? array_sum(array_column($this->movimientos, 'total_amount'))" />
+                                <x-currency :amount="$this->totals['sales_amount'] ?? ($this->totals['total_amount'] ?? 0)" />
                             </span>
                         </td>
                     </tr>

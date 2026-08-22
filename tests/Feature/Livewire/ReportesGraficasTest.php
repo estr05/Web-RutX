@@ -161,4 +161,33 @@ class ReportesGraficasTest extends TestCase
             ->assertSet('range', 'diario')
             ->assertSet('dateFrom', null);
     }
+
+    public function test_get_totals_calculates_fallback_if_api_totals_is_empty(): void
+    {
+        $dashboard = Mockery::mock(DashboardService::class);
+        $dashboard->shouldReceive('summary')->andReturn(['success' => true, 'data' => ['kpi' => []]]);
+        $this->app->instance(DashboardService::class, $dashboard);
+
+        $reports = Mockery::mock(ReportsService::class);
+        $reports->shouldReceive('report')->andReturn([
+            'success' => true,
+            'data' => [
+                'totals' => [], // API omits totals
+                'by_route' => [
+                    ['route_name' => 'A', 'pieces' => 2, 'cash_amount' => 10.0, 'credit_amount' => 5.0, 'total_amount' => 15.0],
+                    ['route_name' => 'B', 'pieces' => 3, 'cash_amount' => 20.0, 'credit_amount' => 10.0, 'total_amount' => 30.0],
+                ],
+            ],
+        ]);
+        $this->app->instance(ReportsService::class, $reports);
+
+        $component = Livewire::test(ReportesGraficas::class);
+        $totals = $component->instance()->totals;
+
+        $this->assertEquals(5, $totals['pieces']);
+        $this->assertEquals(30.0, $totals['cash_amount']);
+        $this->assertEquals(15.0, $totals['credit_amount']);
+        $this->assertEquals(45.0, $totals['total_amount']);
+        $this->assertEquals(45.0, $totals['sales_amount']);
+    }
 }

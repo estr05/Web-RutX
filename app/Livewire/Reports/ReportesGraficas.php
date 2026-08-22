@@ -61,7 +61,7 @@ class ReportesGraficas extends Component
     {
         $dashboard = $this->dashboard;
 
-        return $dashboard['success'] ? ($dashboard['data']['meta']['currency'] ?? 'MXN') : 'MXN';
+        return $dashboard['success'] ? ($dashboard['data']['meta']['currency'] ?? '') : '';
     }
 
     /**
@@ -115,7 +115,24 @@ class ReportesGraficas extends Component
     {
         $result = $this->reportData;
 
-        return $result['success'] ? ($result['data']['totals'] ?? []) : [];
+        if (! $result['success']) {
+            return [];
+        }
+
+        $totals = $result['data']['totals'] ?? [];
+        if (! empty($totals)) {
+            return $totals;
+        }
+
+        $movimientos = $this->movimientos;
+
+        return [
+            'pieces' => array_sum(array_column($movimientos, 'pieces')),
+            'cash_amount' => array_sum(array_column($movimientos, 'cash_amount')),
+            'credit_amount' => array_sum(array_column($movimientos, 'credit_amount')),
+            'total_amount' => array_sum(array_column($movimientos, 'total_amount')),
+            'sales_amount' => array_sum(array_column($movimientos, 'total_amount')),
+        ];
     }
 
     /**
