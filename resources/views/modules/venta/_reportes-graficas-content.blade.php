@@ -15,7 +15,7 @@
 
     <form wire:submit="consultar">
         <x-filter-bar>
-            <x-date-range :range="$range" />
+            <x-date-range :range="$range" label="Filtro por" />
 
             <x-date-input id="reportes-date-from" label="Desde" wire:model="dateFrom" />
 
