@@ -59,12 +59,6 @@ class ReportesGraficasTest extends TestCase
                     'meta' => ['currency' => 'MXN', 'last_sync_at' => null],
                 ],
             ]);
-        $dashboard->shouldReceive('salesSeries')
-            ->once()
-            ->andReturn([
-                'success' => true,
-                'data' => ['series' => []],
-            ]);
         $this->app->instance(DashboardService::class, $dashboard);
 
         $reports = Mockery::mock(ReportsService::class);
@@ -103,7 +97,6 @@ class ReportesGraficasTest extends TestCase
     {
         $dashboard = Mockery::mock(DashboardService::class);
         $dashboard->shouldReceive('summary')->andReturn(['success' => true, 'data' => ['kpi' => []]]);
-        $dashboard->shouldReceive('salesSeries')->andReturn(['success' => true, 'data' => ['series' => []]]);
         $this->app->instance(DashboardService::class, $dashboard);
 
         $reports = Mockery::mock(ReportsService::class);
@@ -136,7 +129,6 @@ class ReportesGraficasTest extends TestCase
     {
         $dashboard = Mockery::mock(DashboardService::class);
         $dashboard->shouldReceive('summary')->andReturn(VisualDashboardFixture::summary());
-        $dashboard->shouldReceive('salesSeries')->andReturn(['success' => true, 'data' => ['series' => []]]);
         $this->app->instance(DashboardService::class, $dashboard);
 
         $reports = Mockery::mock(ReportsService::class);
@@ -174,7 +166,6 @@ class ReportesGraficasTest extends TestCase
     {
         $dashboard = Mockery::mock(DashboardService::class);
         $dashboard->shouldReceive('summary')->andReturn(['success' => true, 'data' => ['kpi' => []]]);
-        $dashboard->shouldReceive('salesSeries')->andReturn(['success' => true, 'data' => ['series' => []]]);
         $this->app->instance(DashboardService::class, $dashboard);
 
         $reports = Mockery::mock(ReportsService::class);
