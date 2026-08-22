@@ -2,28 +2,39 @@
     <x-kpi-card> — Tarjeta de indicador clave de rendimiento.
 
     Props:
-      @prop string       $title   Etiqueta del KPI (texto en mayúsculas pequeñas).
-      @prop float|string $value   Valor principal. Si es numérico (int|float) se
-                                  formatea con Money::format y se muestra en font-mono
-                                  text-right (guidelines §5.2). Si es string se muestra
-                                  tal cual (p. ej. "42 / 50", "84%").
-      @prop string|null  $delta   Etiqueta de variación (opcional). P. ej. "+5.2%".
-      @prop string       $status  Color semántico del delta: success, warning, error, unknown.
-      @prop mixed        $icon    Slot opcional con SVG de 20px (heredará text-rutx-primary).
+      @prop string            $title     Etiqueta del KPI.
+      @prop float|int|string  $value     Valor principal.
+      @prop string            $format    Formato explícito: 'currency' | 'integer' | 'percent' | 'text' (obligatorio).
+      @prop string|null       $delta     Etiqueta de variación opcional (+5.2%).
+      @prop string            $status    Color semántico del delta (success, warning, error, unknown).
+      @prop mixed             $icon      Slot opcional con SVG.
+      @prop string|null       $iconName  Nombre técnico de icono del allowlist (<x-navigation-icon>).
+      @prop string|null       $subLabel  Subetiqueta secundaria opcional.
+      @prop float|int|string|null $subValue Valor secundario opcional.
+      @prop array             $details   Desgloses secundarios opcionales (ej. Contado/Crédito).
 --}}
 @props([
     'title',
     'value',
+    'format',
     'delta' => null,
-    'status' => 'unknown', // success, warning, error, unknown
+    'status' => 'unknown',
     'icon' => null,
+    'iconName' => null,
+    'subLabel' => null,
+    'subValue' => null,
+    'details' => [],
 ])
 
 @php
-    // Formateo interno: si value es numérico, aplicar Money::format (fuente única).
-    // Los valores string (ratio, porcentaje, texto) se muestran sin transformar.
-    $isMonetary = is_int($value) || is_float($value);
-    $displayValue = $isMonetary ? \App\Support\Money::format((float) $value) : $value;
+    $displayValue = match($format) {
+        'currency' => \App\Support\Money::format((float) $value),
+        'integer'  => number_format((float) $value, 0, '.', ','),
+        'percent'  => (string) $value,
+        default    => (string) $value,
+    };
+
+    $isMonetary = ($format === 'currency');
 
     $statusColor = match($status) {
         'success' => 'text-rutx-status-success',
@@ -33,26 +44,54 @@
     };
 @endphp
 
-<div class="bg-rutx-surface border border-rutx-border rounded-lg p-4 shadow-[var(--rutx-shadow-base)] hover:shadow-[var(--rutx-shadow-hover)] transition-shadow">
-    <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-medium text-rutx-text-muted uppercase tracking-wider">{{ $title }}</span>
-        @if($icon)
-            <div class="text-rutx-primary w-5 h-5">
-                {{ $icon }}
-            </div>
-        @endif
-    </div>
+<div class="bg-rutx-surface border border-rutx-border rounded-lg p-4 shadow-[var(--rutx-shadow-base)] hover:shadow-[var(--rutx-shadow-hover)] transition-shadow min-w-0 flex flex-col justify-between">
+    <div>
+        <div class="flex items-center justify-between mb-2 gap-2 min-w-0">
+            <span class="text-xs font-medium text-rutx-text-muted uppercase tracking-wider truncate">{{ $title }}</span>
+            @if($icon)
+                <div class="text-rutx-primary w-5 h-5 shrink-0">
+                    {{ $icon }}
+                </div>
+            @elseif($iconName)
+                <div class="text-rutx-primary w-5 h-5 shrink-0">
+                    <x-navigation-icon :name="$iconName" class="w-5 h-5" />
+                </div>
+            @endif
+        </div>
 
-    <div class="flex items-baseline space-x-2">
-        {{-- font-mono + text-right cuando es monetario (guidelines §5.2) --}}
-        <span class="text-[28px] font-bold text-rutx-text {{ $isMonetary ? 'font-mono text-right' : '' }}">
-            {{ $displayValue }}
-        </span>
-
-        @if($delta)
-            <span class="text-xs font-semibold {{ $statusColor }} bg-current/10 px-1.5 py-0.5 rounded">
-                {{ $delta }}
+        {{-- Contenedor fluido sin truncate en montos: flex-wrap para preservar dígitos completos --}}
+        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 min-w-0">
+            <span class="text-[24px] xl:text-[28px] font-bold text-rutx-text break-words {{ $isMonetary ? 'font-mono text-right' : '' }}">
+                {{ $displayValue }}
             </span>
-        @endif
+
+            @if($delta)
+                <span class="text-xs font-semibold {{ $statusColor }} bg-current/10 px-1.5 py-0.5 rounded shrink-0">
+                    {{ $delta }}
+                </span>
+            @endif
+        </div>
     </div>
+
+    {{-- Sublínea de detalle de negocio (ej. "Contado + Crédito") --}}
+    @if($subLabel !== null)
+        <div class="mt-2 flex items-center justify-between text-xs text-rutx-text-muted min-w-0 gap-2 border-t border-rutx-border/50 pt-1.5">
+            <span class="truncate">{{ $subLabel }}</span>
+            @if($subValue !== null)
+                <span class="font-mono shrink-0"><x-currency :amount="$subValue" /></span>
+            @endif
+        </div>
+    @endif
+
+    {{-- Desgloses secundarios opcionales (ej. Entrega: Contado / Crédito) --}}
+    @if(!empty($details))
+        <div class="mt-2 space-y-1 border-t border-rutx-border/50 pt-2 min-w-0">
+            @foreach($details as $detail)
+                <div class="flex items-center justify-between text-xs text-rutx-text-muted min-w-0 gap-2">
+                    <span class="truncate">{{ $detail['label'] ?? '' }}</span>
+                    <span class="font-mono shrink-0"><x-currency :amount="$detail['value'] ?? 0" /></span>
+                </div>
+            @endforeach
+        </div>
+    @endif
 </div>

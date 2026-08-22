@@ -48,7 +48,7 @@
             {{-- Área de contenido principal --}}
             <main
                 id="main-content"
-                class="flex-1 overflow-y-auto p-6 bg-rutx-bg"
+                class="flex-1 min-w-0 overflow-y-auto p-6 bg-rutx-bg"
                 tabindex="-1"
             >
                 {{ $slot }}

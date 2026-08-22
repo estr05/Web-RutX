@@ -23,9 +23,34 @@ const CHART_COLOR_TOKENS = ['--rutx-chart-blue', '--rutx-chart-cyan'];
 const chartInstances = new WeakMap();
 
 /**
- * Opciones base de Chart.js con la paleta centralizada de tokens.css.
+ * Formateo seguro de moneda para tooltips y ejes de Chart.js sin divisa hardcodeada.
+ * Captura RangeError ante divisas inválidas y hace fallback a número plano.
+ *
+ * @param {number|string} value    Monto a formatear.
+ * @param {string|null}   currency Código de divisa ISO 4217 (ej. 'MXN', 'USD').
  */
-export function rutxChartOptions() {
+export function safeFormatCurrency(value, currency) {
+    if (!currency || typeof currency !== 'string' || currency.trim() === '') {
+        return Number(value).toLocaleString('es-MX');
+    }
+
+    try {
+        return new Intl.NumberFormat('es-MX', {
+            style: 'currency',
+            currency: currency.trim(),
+        }).format(value);
+    } catch {
+        return Number(value).toLocaleString('es-MX');
+    }
+}
+
+/**
+ * Opciones base de Chart.js con la paleta centralizada de tokens.css.
+ *
+ * @param {string|null} format   Formato de eje/tooltip (ej. 'currency').
+ * @param {string|null} currency Código ISO de divisa pasado desde Blade/Livewire.
+ */
+export function rutxChartOptions(format = null, currency = null) {
     const palette = getComputedStyle(document.documentElement);
     const text = palette.getPropertyValue('--rutx-text').trim();
     const textMuted = palette.getPropertyValue('--rutx-text-muted').trim();
@@ -40,17 +65,34 @@ export function rutxChartOptions() {
             },
             tooltip: {
                 backgroundColor: primary,
+                ...(format === 'currency' ? {
+                    callbacks: {
+                        label(context) {
+                            const label = context.dataset.label ? `${context.dataset.label}: ` : '';
+                            return `${label}${safeFormatCurrency(context.parsed.y, currency)}`;
+                        },
+                    },
+                } : {}),
             },
         },
         scales: {
             x: { ticks: { color: textMuted } },
-            y: { ticks: { color: textMuted } },
+            y: {
+                ticks: {
+                    color: textMuted,
+                    ...(format === 'currency' ? {
+                        callback(value) {
+                            return safeFormatCurrency(value, currency);
+                        },
+                    } : {}),
+                },
+            },
         },
     };
 }
 
 /**
- * Serializa un dataset del contrato (SalesSeriesResponse) a Chart.js.
+ * Serializa un dataset del contrato (SalesSeriesResponse) a Chart.js (línea).
  *
  * @param {Array}  series     Puntos: [valor, ...] o { points: [...] }.
  * @param {string} label      Etiqueta de la serie para la leyenda.
@@ -66,6 +108,29 @@ export function buildLineDataset(series, label, colorToken = '--rutx-chart-blue'
         backgroundColor: palette.getPropertyValue(`${colorToken}-bg`).trim(),
         fill: false,
         tension: 0,
+    };
+}
+
+/**
+ * Serializa un dataset a Chart.js para gráfica de barras.
+ *
+ * @param {Array}  series     Puntos: [valor, ...] o { points: [...] }.
+ * @param {string} label      Etiqueta de la serie para la leyenda.
+ * @param {string} colorToken Token CSS de la serie (--rutx-chart-*).
+ */
+export function buildBarDataset(series, label, colorToken = '--rutx-chart-blue') {
+    const palette = getComputedStyle(document.documentElement);
+    const color = palette.getPropertyValue(colorToken).trim();
+    const bgToken = `${colorToken}-bg`;
+    const bg = palette.getPropertyValue(bgToken).trim() || color;
+
+    return {
+        label,
+        data: series.points ?? series,
+        backgroundColor: bg,
+        borderColor: color,
+        borderWidth: 1.5,
+        borderRadius: 4,
     };
 }
 
@@ -100,13 +165,18 @@ export function refreshRutxCharts(root = document) {
         }
 
         try {
-            const datasets = safeParse(canvas.dataset.datasets, []).map((dataset, index) => (
-                buildLineDataset(
-                    dataset.data ?? dataset,
-                    dataset.label ?? '',
-                    dataset.colorToken ?? CHART_COLOR_TOKENS[index % CHART_COLOR_TOKENS.length],
-                )
-            ));
+            const format = canvas.dataset.format || null;
+            const currency = canvas.dataset.currency || null;
+
+            const datasets = safeParse(canvas.dataset.datasets, []).map((dataset, index) => {
+                const token = dataset.colorToken ?? CHART_COLOR_TOKENS[index % CHART_COLOR_TOKENS.length];
+                const dataPoints = dataset.data ?? dataset;
+                const label = dataset.label ?? '';
+
+                return canvas.dataset.type === 'bar'
+                    ? buildBarDataset(dataPoints, label, token)
+                    : buildLineDataset(dataPoints, label, token);
+            });
 
             const instance = new Chart(canvas, {
                 type: canvas.dataset.type ?? 'line',
@@ -114,7 +184,7 @@ export function refreshRutxCharts(root = document) {
                     labels: safeParse(canvas.dataset.labels, []),
                     datasets,
                 },
-                options: rutxChartOptions(),
+                options: rutxChartOptions(format, currency),
             });
 
             // Registrar instancia para destrucción futura.

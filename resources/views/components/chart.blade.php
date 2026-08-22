@@ -21,20 +21,33 @@
     'id' => 'rutx-chart-'.\Illuminate\Support\Str::random(6),
     'height' => 320,
     'summary' => 'Gráfica',
+    'format' => null,
+    'currency' => null,
+    'emptyMessage' => 'Sin datos para el período seleccionado',
 ])
 
 <div class="bg-rutx-surface border border-rutx-border rounded-lg p-4 shadow-[var(--rutx-shadow-base)]">
-    <div style="height: {{ $height }}px;">
-        <canvas
-            id="{{ $id }}"
-            data-rutx-chart
-            data-type="{{ $type }}"
-            data-labels='{{ json_encode($labels, JSON_UNESCAPED_UNICODE) }}'
-            data-datasets='{{ json_encode($datasets, JSON_UNESCAPED_UNICODE) }}'
-            role="img"
-            aria-label="{{ $summary }}"
-            tabindex="0"
-            class="w-full h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rutx-accent rounded-lg"
-        >{{ $summary }}</canvas>
+    <div style="height: {{ $height }}px;" class="w-full">
+        @if (empty($labels) || empty($datasets))
+            <div class="w-full h-full flex items-center justify-center">
+                <p class="text-sm text-rutx-text-muted text-center" role="status">
+                    {{ $emptyMessage }}
+                </p>
+            </div>
+        @else
+            <canvas
+                id="{{ $id }}"
+                data-rutx-chart
+                data-type="{{ $type }}"
+                data-format="{{ $format }}"
+                data-currency="{{ $currency }}"
+                data-labels='{{ json_encode($labels, JSON_UNESCAPED_UNICODE) }}'
+                data-datasets='{{ json_encode($datasets, JSON_UNESCAPED_UNICODE) }}'
+                role="img"
+                aria-label="{{ $summary }}"
+                tabindex="0"
+                class="w-full h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rutx-accent rounded-lg"
+            >{{ $summary }}</canvas>
+        @endif
     </div>
 </div>
