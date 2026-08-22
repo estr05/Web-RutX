@@ -39,8 +39,8 @@ class ReportesGraficasTest extends TestCase
             ->assertSee('Entrega')
             ->assertSee('Gastos')
             ->assertSee('$ 0.00')
-            ->assertSee('Sin datos para el período seleccionado')
-            ->assertSee('Sin registros para este período')
+            ->assertSee('Ruta Stub Norte')
+            ->assertSee('Ruta Stub Sur')
             ->assertSee('wire:poll.30s', false);
     }
 

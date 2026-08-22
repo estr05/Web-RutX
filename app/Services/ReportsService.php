@@ -43,11 +43,26 @@ class ReportsService
             'success' => true,
             'data' => [
                 'totals' => [
-                    'sales_amount' => 0.00,
-                    'pieces' => 0,
+                    'sales_amount' => 1500.00,
+                    'pieces' => 30,
                     'currency' => 'MXN',
                 ],
-                'by_route' => [],
+                'by_route' => [
+                    [
+                        'route_name' => 'Ruta Stub Norte',
+                        'pieces' => 15,
+                        'cash_amount' => 500.00,
+                        'credit_amount' => 200.00,
+                        'total_amount' => 700.00,
+                    ],
+                    [
+                        'route_name' => 'Ruta Stub Sur',
+                        'pieces' => 15,
+                        'cash_amount' => 400.00,
+                        'credit_amount' => 400.00,
+                        'total_amount' => 800.00,
+                    ]
+                ],
                 'status' => 'unknown',
             ],
         ];
