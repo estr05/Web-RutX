@@ -59,9 +59,9 @@
             @endif
         </div>
 
-        {{-- Contenedor fluido sin truncate en montos: flex-wrap para preservar dígitos completos --}}
+        {{-- Contenedor fluido sin truncate ni overflow-hidden: flex-wrap para preservar dígitos completos sin cortes extraños --}}
         <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 min-w-0">
-            <span class="text-[24px] xl:text-[28px] font-bold text-rutx-text break-words {{ $isMonetary ? 'font-mono text-right' : '' }}">
+            <span class="text-[20px] sm:text-[24px] xl:text-[28px] font-bold text-rutx-text leading-tight whitespace-nowrap {{ $isMonetary ? 'font-mono text-right' : '' }}">
                 {{ $displayValue }}
             </span>
 
