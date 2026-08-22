@@ -1,4 +1,4 @@
-import { Chart } from 'chart.js';
+import Chart from 'chart.js/auto';
 
 /**
  * Módulo de gráficas RutX — Chart.js vía npm/Vite (prohibido CDN).
