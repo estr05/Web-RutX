@@ -7,10 +7,10 @@
         @if(isset($actions))
             {{ $actions }}
         @else
-            <button type="button" class="h-[var(--rutx-height-button)] px-6 rounded-xl border border-rutx-accent text-rutx-accent hover:bg-rutx-accent-light transition-colors font-medium text-sm">
+            <button type="button" class="h-[var(--rutx-height-input)] px-6 rounded-xl border border-rutx-accent text-rutx-accent hover:bg-rutx-accent-light transition-colors font-medium text-sm">
                 Limpiar
             </button>
-            <button type="submit" class="h-[var(--rutx-height-button)] px-6 rounded-xl bg-rutx-accent text-white hover:bg-rutx-accent-hover transition-colors font-medium text-sm">
+            <button type="submit" class="h-[var(--rutx-height-input)] px-6 rounded-xl bg-rutx-accent text-white hover:bg-rutx-accent-hover transition-colors font-medium text-sm">
                 Consultar
             </button>
         @endif
