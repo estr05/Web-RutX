@@ -150,6 +150,18 @@
             <polyline points="9 14 11 16 15 11"></polyline>
             @break
 
+        @case('credit-card')
+            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+            <line x1="2" y1="10" x2="22" y2="10"></line>
+            @break
+
+        @case('clipboard-list')
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+            <line x1="9" y1="12" x2="15" y2="12"></line>
+            <line x1="9" y1="16" x2="13" y2="16"></line>
+            @break
+
         @case('clock')
             <circle cx="12" cy="12" r="10"></circle>
             <polyline points="12 6 12 12 16 14"></polyline>

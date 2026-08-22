@@ -78,13 +78,8 @@
             </h2>
         </div>
 
-        {{-- Vistas del módulo activo: scrollea el nav con su propio scrollbar --}}
-        <x-scroll-area
-            tag="nav"
-            tone="dark"
-            class="flex-1 py-4"
-            aria-label="{{ $currentModule['label'] }}"
-        >
+        {{-- Vistas del módulo activo --}}
+        <nav class="flex-1 py-4 overflow-y-auto overflow-x-hidden" aria-label="{{ $currentModule['label'] }}">
             <ul class="space-y-1" role="list">
                 @foreach($currentModule['views'] as $viewRoute => $view)
                     @php
@@ -123,7 +118,7 @@
                     </li>
                 @endforeach
             </ul>
-        </x-scroll-area>
+        </nav>
 
     @else
         {{-- Placeholder cuando no hay módulo seleccionado --}}

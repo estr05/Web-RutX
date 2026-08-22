@@ -33,8 +33,7 @@
 </head>
 <body class="bg-rutx-bg text-rutx-text font-sans antialiased">
 
-    {{-- Shell acotado al viewport: topbar y sidebar estáticos, solo el contenido scrollea --}}
-    <div class="h-screen flex flex-col">
+    <div class="min-h-screen flex flex-col">
 
         {{-- Topbar (64 px) — lee módulos de config/navigation.php --}}
         <x-app-topbar />
@@ -48,7 +47,7 @@
             {{-- Área de contenido principal --}}
             <main
                 id="main-content"
-                class="flex-1 overflow-y-auto p-6 bg-rutx-bg"
+                class="flex-1 min-w-0 overflow-y-auto p-6 bg-rutx-bg"
                 tabindex="-1"
             >
                 {{ $slot }}

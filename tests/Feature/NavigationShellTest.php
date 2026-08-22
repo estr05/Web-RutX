@@ -236,26 +236,6 @@ class NavigationShellTest extends TestCase
         }
     }
 
-    public function test_sidebar_scroll_area_uses_reusable_component(): void
-    {
-        $this->session([
-            'api_token' => 'web-token-test',
-            'permissions' => [
-                'reports.read',
-                'routes.monitor',
-            ],
-        ]);
-
-        $response = $this->get(route('venta.reportes'));
-
-        $response->assertStatus(200);
-        // El nav del sidebar scrollea vía el componente reutilizable
-        // <x-scroll-area> con tono oscuro sobre el fondo primario.
-        $response->assertSee('rutx-scroll rutx-scroll--dark', false);
-        // La semántica accesible del anfitrión se conserva (prop tag="nav").
-        $response->assertSee('<nav', false);
-    }
-
     // -------------------------------------------------------------------------
     // Regla de arquitectura: los wrappers no deben pasar labels manualmente
     // -------------------------------------------------------------------------

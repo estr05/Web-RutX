@@ -1,5 +1,5 @@
-<div class="bg-rutx-surface border border-rutx-border rounded-lg p-4 mb-6 shadow-[var(--rutx-shadow-base)] flex flex-wrap items-end gap-4">
-    <div class="flex-1 flex flex-wrap gap-4">
+<div class="bg-rutx-surface border border-rutx-border rounded-lg p-4 mb-6 shadow-[var(--rutx-shadow-base)] flex flex-wrap items-end gap-4 min-w-0">
+    <div class="flex-1 min-w-0 flex flex-wrap gap-4">
         {{ $slot }}
     </div>
 
