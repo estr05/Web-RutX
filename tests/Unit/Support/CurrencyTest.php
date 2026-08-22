@@ -21,7 +21,7 @@ class CurrencyTest extends TestCase
 
     public function test_formats_negative_amount(): void
     {
-        $this->assertSame('$ -320.00', Money::format(-320.0));
+        $this->assertSame('-$ 320.00', Money::format(-320.0));
     }
 
     public function test_formats_large_amount_without_scientific_notation(): void

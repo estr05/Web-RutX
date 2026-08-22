@@ -2,13 +2,16 @@
     <x-chart> — Gráfica con Chart.js (npm/Vite, prohibido CDN).
 
     Props:
-      @prop string  $type     Tipo Chart.js: line (default) | bar | doughnut.
-      @prop array   $labels   Etiquetas del eje X (ej. ['Lun', 'Mar', ...]).
-      @prop array   $datasets Series: [['label' => string, 'data' => array,
-                             'colorToken' => '--rutx-chart-blue'|'--rutx-chart-cyan'], ...].
-      @prop string  $id       Id del <canvas> (default: aleatorio).
-      @prop int     $height   Altura del contenedor en px (default: 320).
-      @prop string  $summary  Descripción accesible (aria-label y fallback).
+      @prop string      $type         Tipo Chart.js: line (default) | bar | doughnut.
+      @prop array       $labels       Etiquetas del eje X (ej. ['Lun', 'Mar', ...]).
+      @prop array       $datasets     Series: [['label' => string, 'data' => array,
+                                     'colorToken' => '--rutx-chart-blue'|'--rutx-chart-cyan'], ...].
+      @prop string      $id           Id del <canvas> (default: aleatorio).
+      @prop int         $height       Altura del contenedor en px (default: 320).
+      @prop string      $summary      Descripción accesible (aria-label y fallback).
+      @prop string|null $format       Formato del eje y tooltips (ej. 'currency').
+      @prop string|null $currency     Divisa contractual (ej. 'MXN') para tooltips monetarios.
+      @prop string      $emptyMessage Mensaje mostrado si la gráfica no tiene datos.
 
     Este componente es solo HTML + data-attributes; la inicialización vive en
     resources/js/modules/chart.js (importado en app.js). Sin colores propios:

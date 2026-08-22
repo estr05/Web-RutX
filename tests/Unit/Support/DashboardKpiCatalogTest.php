@@ -46,7 +46,7 @@ class DashboardKpiCatalogTest extends TestCase
     {
         $meta = DashboardKpiCatalog::get('KPI Inexistente');
 
-        $this->assertSame('currency', $meta['format']);
+        $this->assertSame('text', $meta['format']);
         $this->assertNull($meta['iconName']);
         $this->assertSame('primary', $meta['group']);
     }

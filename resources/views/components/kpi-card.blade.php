@@ -61,7 +61,7 @@
 
         {{-- Contenedor fluido sin truncate ni overflow-hidden: flex-wrap para preservar dígitos completos sin cortes extraños --}}
         <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 min-w-0">
-            <span class="text-[20px] sm:text-[24px] xl:text-[28px] font-bold text-rutx-text leading-tight whitespace-nowrap {{ $isMonetary ? 'font-mono text-right' : '' }}">
+            <span class="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold text-rutx-text leading-tight break-words max-w-full {{ $isMonetary ? 'font-mono text-right' : '' }}">
                 {{ $displayValue }}
             </span>
 

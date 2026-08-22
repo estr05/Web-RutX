@@ -15,6 +15,8 @@ final class Money
 {
     public static function format(float $amount): string
     {
-        return '$ '.number_format($amount, 2, '.', ',');
+        $formatted = number_format(abs($amount), 2, '.', ',');
+
+        return ($amount < 0 ? '-$ ' : '$ ').$formatted;
     }
 }

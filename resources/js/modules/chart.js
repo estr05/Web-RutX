@@ -30,18 +30,32 @@ const chartInstances = new WeakMap();
  * @param {string|null}   currency Código de divisa ISO 4217 (ej. 'MXN', 'USD').
  */
 export function safeFormatCurrency(value, currency) {
-    if (!currency || typeof currency !== 'string' || currency.trim() === '') {
-        return Number(value).toLocaleString('es-MX');
-    }
+    const absValue = Math.abs(Number(value));
+    const isNegative = Number(value) < 0;
+    let formatted;
 
     try {
-        return new Intl.NumberFormat('es-MX', {
+        if (!currency || typeof currency !== 'string' || currency.trim() === '') {
+            throw new Error('No currency');
+        }
+        
+        // Format absolute value to get the currency symbol without the negative sign
+        const parts = new Intl.NumberFormat('es-MX', {
             style: 'currency',
             currency: currency.trim(),
-        }).format(value);
+        }).formatToParts(absValue);
+        
+        formatted = parts.map(p => p.value).join('');
     } catch {
-        return Number(value).toLocaleString('es-MX');
+        formatted = '$ ' + absValue.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
+
+    // Ensure space after $ if there isn't one
+    if (formatted.startsWith('$') && !formatted.startsWith('$ ')) {
+        formatted = formatted.replace('$', '$ ');
+    }
+
+    return isNegative ? `-${formatted}` : formatted;
 }
 
 /**

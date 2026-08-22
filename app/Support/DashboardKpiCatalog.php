@@ -65,7 +65,7 @@ final class DashboardKpiCatalog
     public static function get(string $label): array
     {
         return self::all()[$label] ?? [
-            'format' => 'currency',
+            'format' => 'text',
             'iconName' => null,
             'group' => 'primary',
         ];
