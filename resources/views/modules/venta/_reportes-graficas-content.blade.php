@@ -25,7 +25,7 @@
                 <button
                     type="button"
                     wire:click="limpiar"
-                    class="h-[var(--rutx-height-input)] px-6 rounded-xl border border-rutx-accent text-rutx-accent
+                    class="h-[var(--rutx-height-button)] px-6 rounded-xl border border-rutx-accent text-rutx-accent
                            hover:bg-rutx-accent-light transition-colors font-medium text-sm
                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rutx-accent"
                 >
@@ -33,7 +33,7 @@
                 </button>
                 <button
                     type="submit"
-                    class="h-[var(--rutx-height-input)] px-6 rounded-xl bg-rutx-accent text-white
+                    class="h-[var(--rutx-height-button)] px-6 rounded-xl bg-rutx-accent text-white
                            hover:bg-rutx-accent-hover transition-colors font-medium text-sm
                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rutx-accent"
                 >
