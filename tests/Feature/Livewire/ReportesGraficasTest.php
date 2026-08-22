@@ -122,7 +122,7 @@ class ReportesGraficasTest extends TestCase
         $this->assertSame('--rutx-chart-blue', $chart['datasets'][0]['colorToken']);
         $this->assertSame('Crédito', $chart['datasets'][1]['label']);
         $this->assertSame([200.0, 100.0], $chart['datasets'][1]['data']);
-        $this->assertSame('--rutx-chart-cyan', $chart['datasets'][1]['colorToken']);
+        $this->assertSame('--rutx-chart-orange', $chart['datasets'][1]['colorToken']);
     }
 
     public function test_renders_visual_fixture_with_large_amounts_sublines_and_details(): void

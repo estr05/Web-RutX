@@ -12,7 +12,7 @@ import Chart from 'chart.js/auto';
  * Exporta rutxChartOptions y buildLineDataset para uso programático futuro
  * (p. ej. desde componentes Livewire).
  */
-const CHART_COLOR_TOKENS = ['--rutx-chart-blue', '--rutx-chart-cyan'];
+const CHART_COLOR_TOKENS = ['--rutx-chart-blue', '--rutx-chart-orange'];
 
 /**
  * WeakMap<HTMLCanvasElement, Chart> — rastrea instancias activas.
