@@ -145,6 +145,7 @@ export function buildBarDataset(series, label, colorToken = '--rutx-chart-blue')
         borderColor: color,
         borderWidth: 1.5,
         borderRadius: 4,
+        minBarLength: 5,
     };
 }
 
