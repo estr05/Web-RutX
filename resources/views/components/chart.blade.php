@@ -27,17 +27,39 @@
     'format' => null,
     'currency' => null,
     'emptyMessage' => 'Sin datos para el período seleccionado',
+    'scrollable' => false,
+    'pageSize' => 6,
 ])
 
 <div class="bg-rutx-surface border border-rutx-border rounded-lg p-4 shadow-[var(--rutx-shadow-base)]">
-    <div style="height: {{ $height }}px;" class="w-full">
-        @if (empty($labels) || empty($datasets))
-            <div class="w-full h-full flex items-center justify-center">
-                <p class="text-sm text-rutx-text-muted text-center" role="status">
-                    {{ $emptyMessage }}
-                </p>
+    @if (empty($labels) || empty($datasets))
+        <div style="height: {{ $height }}px;" class="w-full flex items-center justify-center">
+            <p class="text-sm text-rutx-text-muted text-center" role="status">
+                {{ $emptyMessage }}
+            </p>
+        </div>
+    @elseif ($scrollable)
+        <div class="w-full overflow-x-auto" role="region" aria-label="{{ $summary }}">
+            <div data-chart-scroll-inner style="height: {{ $height }}px; min-width: 100%;">
+                <canvas
+                    id="{{ $id }}"
+                    data-rutx-chart
+                    data-type="{{ $type }}"
+                    data-format="{{ $format }}"
+                    data-currency="{{ $currency }}"
+                    data-labels='{{ json_encode($labels, JSON_UNESCAPED_UNICODE) }}'
+                    data-datasets='{{ json_encode($datasets, JSON_UNESCAPED_UNICODE) }}'
+                    data-scrollable="true"
+                    data-page-size="{{ $pageSize }}"
+                    role="img"
+                    aria-label="{{ $summary }}"
+                    tabindex="0"
+                    class="w-full h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rutx-accent rounded-lg"
+                >{{ $summary }}</canvas>
             </div>
-        @else
+        </div>
+    @else
+        <div style="height: {{ $height }}px;" class="w-full">
             <canvas
                 id="{{ $id }}"
                 data-rutx-chart
@@ -51,6 +73,6 @@
                 tabindex="0"
                 class="w-full h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rutx-accent rounded-lg"
             >{{ $summary }}</canvas>
-        @endif
-    </div>
+        </div>
+    @endif
 </div>

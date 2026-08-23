@@ -198,6 +198,27 @@ export function refreshRutxCharts(root = document) {
                 
                 instance.update();
             } else {
+                // Scroll horizontal: expandir el contenedor interior según cantidad de puntos
+                const isScrollable = canvas.dataset.scrollable === 'true';
+                if (isScrollable) {
+                    const pageSize = parseInt(canvas.dataset.pageSize ?? '6', 10);
+                    const labels = safeParse(canvas.dataset.labels, []);
+                    const labelCount = labels.length;
+
+                    if (labelCount > pageSize) {
+                        const inner = canvas.closest('[data-chart-scroll-inner]');
+                        if (inner) {
+                            const outer = inner.parentElement;
+                            const visibleWidth = outer?.clientWidth ?? 600;
+                            if (visibleWidth > 0) {
+                                const pointWidth = visibleWidth / pageSize;
+                                const totalWidth = pointWidth * labelCount;
+                                inner.style.minWidth = `${totalWidth}px`;
+                            }
+                        }
+                    }
+                }
+
                 // Crear instancia desde cero
                 const instance = new Chart(canvas, {
                     type: canvas.dataset.type ?? 'line',

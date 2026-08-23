@@ -59,6 +59,7 @@ class ReportesGraficasTest extends TestCase
                     'meta' => ['currency' => 'MXN', 'last_sync_at' => null],
                 ],
             ]);
+        $dashboard->shouldReceive('salesSeries')->andReturn(['success' => true, 'data' => ['series' => []]]);
         $this->app->instance(DashboardService::class, $dashboard);
 
         $reports = Mockery::mock(ReportsService::class);
@@ -97,6 +98,7 @@ class ReportesGraficasTest extends TestCase
     {
         $dashboard = Mockery::mock(DashboardService::class);
         $dashboard->shouldReceive('summary')->andReturn(['success' => true, 'data' => ['kpi' => []]]);
+        $dashboard->shouldReceive('salesSeries')->andReturn(['success' => true, 'data' => ['series' => []]]);
         $this->app->instance(DashboardService::class, $dashboard);
 
         $reports = Mockery::mock(ReportsService::class);
@@ -129,6 +131,7 @@ class ReportesGraficasTest extends TestCase
     {
         $dashboard = Mockery::mock(DashboardService::class);
         $dashboard->shouldReceive('summary')->andReturn(VisualDashboardFixture::summary());
+        $dashboard->shouldReceive('salesSeries')->andReturn(['success' => true, 'data' => ['series' => []]]);
         $this->app->instance(DashboardService::class, $dashboard);
 
         $reports = Mockery::mock(ReportsService::class);
@@ -166,6 +169,7 @@ class ReportesGraficasTest extends TestCase
     {
         $dashboard = Mockery::mock(DashboardService::class);
         $dashboard->shouldReceive('summary')->andReturn(['success' => true, 'data' => ['kpi' => []]]);
+        $dashboard->shouldReceive('salesSeries')->andReturn(['success' => true, 'data' => ['series' => []]]);
         $this->app->instance(DashboardService::class, $dashboard);
 
         $reports = Mockery::mock(ReportsService::class);
@@ -189,5 +193,145 @@ class ReportesGraficasTest extends TestCase
         $this->assertEquals(15.0, $totals['credit_amount']);
         $this->assertEquals(45.0, $totals['total_amount']);
         $this->assertEquals(45.0, $totals['sales_amount']);
+    }
+
+    public function test_dispatches_error_feedback_when_dashboard_api_fails(): void
+    {
+        $dashboard = Mockery::mock(DashboardService::class);
+        $dashboard->shouldReceive('summary')->andReturn([
+            'success' => false,
+            'code'    => 'API_UNAVAILABLE',
+            'message' => 'No se pudo conectar con el servicio.',
+        ]);
+        $dashboard->shouldReceive('salesSeries')->andReturn(['success' => true, 'data' => ['series' => []]]);
+        $this->app->instance(DashboardService::class, $dashboard);
+
+        $reports = Mockery::mock(ReportsService::class);
+        $reports->shouldReceive('report')->andReturn(['success' => true, 'data' => ['by_route' => [], 'totals' => []]]);
+        $this->app->instance(ReportsService::class, $reports);
+
+        Livewire::test(ReportesGraficas::class)
+            ->assertNotDispatched('rutx:feedback')
+            ->assertSet('hasApiError', true)
+            ->call('consultar')
+            ->assertDispatched('rutx:feedback');
+    }
+
+    public function test_dispatches_error_feedback_when_series_api_fails(): void
+    {
+        $dashboard = Mockery::mock(DashboardService::class);
+        $dashboard->shouldReceive('summary')->andReturn(['success' => true, 'data' => ['kpi' => []]]);
+        $dashboard->shouldReceive('salesSeries')->andReturn([
+            'success' => false,
+            'code'    => 'GATEWAY_TIMEOUT',
+            'message' => 'Timeout',
+        ]);
+        $this->app->instance(DashboardService::class, $dashboard);
+
+        $reports = Mockery::mock(ReportsService::class);
+        $reports->shouldReceive('report')->andReturn(['success' => true, 'data' => ['by_route' => [], 'totals' => []]]);
+        $this->app->instance(ReportsService::class, $reports);
+
+        Livewire::test(ReportesGraficas::class)
+            ->assertNotDispatched('rutx:feedback')
+            ->assertSet('hasApiError', true)
+            ->call('consultar')
+            ->assertDispatched('rutx:feedback');
+    }
+
+    public function test_dispatches_error_feedback_when_reports_api_fails(): void
+    {
+        $dashboard = Mockery::mock(DashboardService::class);
+        $dashboard->shouldReceive('summary')->andReturn(['success' => true, 'data' => ['kpi' => []]]);
+        $dashboard->shouldReceive('salesSeries')->andReturn(['success' => true, 'data' => ['series' => []]]);
+        $this->app->instance(DashboardService::class, $dashboard);
+
+        $reports = Mockery::mock(ReportsService::class);
+        $reports->shouldReceive('report')->andReturn([
+            'success' => false,
+            'code'    => 'FEATURE_NOT_READY',
+            'message' => 'Feature no lista',
+        ]);
+        $this->app->instance(ReportsService::class, $reports);
+
+        Livewire::test(ReportesGraficas::class)
+            ->assertNotDispatched('rutx:feedback')
+            ->assertSet('hasApiError', true)
+            ->call('consultar')
+            ->assertDispatched('rutx:feedback');
+    }
+
+    public function test_has_api_error_is_true_after_dashboard_failure(): void
+    {
+        $dashboard = Mockery::mock(DashboardService::class);
+        $dashboard->shouldReceive('summary')->andReturn(['success' => false, 'code' => 'TEST']);
+        $dashboard->shouldReceive('salesSeries')->andReturn(['success' => true, 'data' => ['series' => []]]);
+        $this->app->instance(DashboardService::class, $dashboard);
+
+        $reports = Mockery::mock(ReportsService::class);
+        $reports->shouldReceive('report')->andReturn(['success' => true, 'data' => ['by_route' => [], 'totals' => []]]);
+        $this->app->instance(ReportsService::class, $reports);
+
+        Livewire::test(ReportesGraficas::class)
+            ->assertSet('hasApiError', true);
+    }
+
+    public function test_has_api_error_is_false_when_all_services_succeed(): void
+    {
+        $dashboard = Mockery::mock(DashboardService::class);
+        $dashboard->shouldReceive('summary')->andReturn(['success' => true, 'data' => ['kpi' => []]]);
+        $dashboard->shouldReceive('salesSeries')->andReturn(['success' => true, 'data' => ['series' => []]]);
+        $this->app->instance(DashboardService::class, $dashboard);
+
+        $reports = Mockery::mock(ReportsService::class);
+        $reports->shouldReceive('report')->andReturn(['success' => true, 'data' => ['by_route' => [], 'totals' => []]]);
+        $this->app->instance(ReportsService::class, $reports);
+
+        Livewire::test(ReportesGraficas::class)
+            ->assertSet('hasApiError', false);
+    }
+
+    public function test_reintentar_event_triggers_consultar(): void
+    {
+        config()->set('services.api_web.stubs_enabled', true);
+
+        Livewire::test(ReportesGraficas::class)
+            ->set('hasApiError', true)
+            ->call('consultar')
+            ->assertSet('hasApiError', false);
+    }
+
+    public function test_is_series_scrollable_true_for_mensual(): void
+    {
+        config()->set('services.api_web.stubs_enabled', true);
+
+        $component = Livewire::test(ReportesGraficas::class)
+            ->set('range', 'mensual');
+            
+        $this->assertTrue($component->get('isSeriesScrollable'));
+    }
+
+    public function test_is_series_scrollable_true_for_date_range(): void
+    {
+        config()->set('services.api_web.stubs_enabled', true);
+
+        $component = Livewire::test(ReportesGraficas::class)
+            ->set('range', null)
+            ->set('dateFrom', '2026-08-01')
+            ->set('dateTo', '2026-08-15');
+            
+        $this->assertTrue($component->get('isSeriesScrollable'));
+    }
+
+    public function test_is_series_scrollable_false_for_diario(): void
+    {
+        config()->set('services.api_web.stubs_enabled', true);
+
+        $component = Livewire::test(ReportesGraficas::class)
+            ->set('range', 'diario')
+            ->set('dateFrom', null)
+            ->set('dateTo', null);
+            
+        $this->assertFalse($component->get('isSeriesScrollable'));
     }
 }

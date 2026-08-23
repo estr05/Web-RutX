@@ -43,6 +43,19 @@
         </x-filter-bar>
     </form>
 
+    @if ($hasApiError)
+        <div role="alert" class="flex items-center gap-3 rounded-xl border border-red-500/30 
+             bg-red-500/10 px-4 py-3 mb-4 text-sm text-red-400">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0">
+                <path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+            </svg>
+            <span>No se pudieron cargar los datos. Verifica tu conexión o intenta de nuevo.</span>
+            <button wire:click="consultar" class="ml-auto text-xs underline hover:text-red-300">
+                Reintentar
+            </button>
+        </div>
+    @endif
+
     {{-- Fila 1: métricas monetarias principales (4 tarjetas) --}}
     <div class="grid grid-cols-1 md:grid-cols-[repeat(4,minmax(0,1fr))] gap-4 mb-4">
         @foreach (array_slice($this->kpi, 0, 4) as $card)
@@ -77,7 +90,26 @@
         @endforeach
     </div>
 
+    {{-- Gráfica de líneas: serie temporal de ventas --}}
     <x-chart
+        id="rutx-chart-sales-series"
+        type="line"
+        :labels="$this->series['labels'] ?? []"
+        :datasets="$this->series['datasets'] ?? []"
+        format="currency"
+        :currency="$this->currency"
+        :height="320"
+        summary="Serie de ventas del período seleccionado"
+        :scrollable="$this->isSeriesScrollable"
+        :page-size="6"
+        :emptyMessage="$hasApiError ? 'No se pudo cargar la gráfica. Verifica la conexión.' : 'No hay ventas registradas para este período.'"
+        class="mb-6"
+    />
+
+    {{-- Comparativa Contado vs Crédito por Ruta --}}
+    <h3 class="text-lg font-semibold text-rutx-text mb-4 mt-8">Contado vs Crédito por Ruta</h3>
+    <x-chart
+        id="rutx-chart-route-bar"
         type="bar"
         :labels="$this->routeChart['labels'] ?? []"
         :datasets="$this->routeChart['datasets'] ?? []"
@@ -85,6 +117,7 @@
         :currency="$this->currency"
         :height="340"
         summary="Ventas por Ruta — Contado vs Crédito"
+        :emptyMessage="$hasApiError ? 'No se pudo cargar la comparativa. Verifica la conexión.' : 'Sin comparativa disponible para este período.'"
     />
 
     <div class="mt-6">
