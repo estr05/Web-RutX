@@ -1,4 +1,4 @@
-import Chart from 'chart.js/auto';
+import { Chart } from 'chart.js';
 
 /**
  * Módulo de gráficas RutX — Chart.js vía npm/Vite (prohibido CDN).
@@ -12,7 +12,7 @@ import Chart from 'chart.js/auto';
  * Exporta rutxChartOptions y buildLineDataset para uso programático futuro
  * (p. ej. desde componentes Livewire).
  */
-const CHART_COLOR_TOKENS = ['--rutx-chart-blue', '--rutx-chart-orange'];
+const CHART_COLOR_TOKENS = ['--rutx-chart-blue', '--rutx-chart-cyan'];
 
 /**
  * WeakMap<HTMLCanvasElement, Chart> — rastrea instancias activas.
@@ -145,7 +145,6 @@ export function buildBarDataset(series, label, colorToken = '--rutx-chart-blue')
         borderColor: color,
         borderWidth: 1.5,
         borderRadius: 4,
-        minBarLength: 5,
     };
 }
 
@@ -173,6 +172,12 @@ function safeParse(raw, fallback) {
  */
 export function refreshRutxCharts(root = document) {
     root.querySelectorAll('[data-rutx-chart]').forEach((canvas) => {
+        // Destruir instancia previa si el canvas ya fue inicializado.
+        if (chartInstances.has(canvas)) {
+            chartInstances.get(canvas).destroy();
+            chartInstances.delete(canvas);
+        }
+
         try {
             const format = canvas.dataset.format || null;
             const currency = canvas.dataset.currency || null;
@@ -187,29 +192,17 @@ export function refreshRutxCharts(root = document) {
                     : buildLineDataset(dataPoints, label, token);
             });
 
-            if (chartInstances.has(canvas)) {
-                // Actualización suave (animada) de la instancia existente
-                const instance = chartInstances.get(canvas);
-                instance.data.labels = safeParse(canvas.dataset.labels, []);
-                instance.data.datasets = datasets;
-                
-                // Actualizar formato y divisa si cambiaron
-                instance.options = rutxChartOptions(format, currency);
-                
-                instance.update();
-            } else {
-                // Crear instancia desde cero
-                const instance = new Chart(canvas, {
-                    type: canvas.dataset.type ?? 'line',
-                    data: {
-                        labels: safeParse(canvas.dataset.labels, []),
-                        datasets,
-                    },
-                    options: rutxChartOptions(format, currency),
-                });
+            const instance = new Chart(canvas, {
+                type: canvas.dataset.type ?? 'line',
+                data: {
+                    labels: safeParse(canvas.dataset.labels, []),
+                    datasets,
+                },
+                options: rutxChartOptions(format, currency),
+            });
 
-                chartInstances.set(canvas, instance);
-            }
+            // Registrar instancia para destrucción futura.
+            chartInstances.set(canvas, instance);
         } catch (error) {
             console.warn('No se pudo inicializar la gráfica de RutX.', error);
         }
@@ -228,30 +221,15 @@ if (document.readyState === 'loading') {
 }
 
 /**
- * Evento personalizado que Alpine/Livewire despacha explícitamente.
+ * Evento personalizado que Alpine/Livewire despacha cuando el DOM con
+ * gráficas ha sido re-renderizado por un ciclo de wire:poll.
+ * En Blade: @this.dispatchTo('…') o Alpine $dispatch('rutx:refresh-charts').
  */
 document.addEventListener('rutx:refresh-charts', () => refreshRutxCharts());
 
 /**
- * Enganche global a Livewire 3.
- * Cada vez que Livewire muta el DOM (por un filtro, una paginación,
- * un wire:poll, etc.), escaneamos las gráficas para actualizarlas
- * automáticamente.
- */
-document.addEventListener('livewire:init', () => {
-    // eslint-disable-next-line no-undef
-    Livewire.hook('commit', ({ succeed }) => {
-        succeed(() => {
-            // requestAnimationFrame asegura que el DOM terminó de ser pintado
-            // por el navegador antes de decirle a Chart.js que recalcule dimensiones.
-            requestAnimationFrame(() => refreshRutxCharts());
-        });
-    });
-});
-
-/**
  * Livewire 3 dispara 'livewire:navigated' al terminar de actualizar el DOM
- * en una navegación SPA.
+ * en una navegación SPA. Re-inicializar por si la nueva página tiene gráficas.
  */
 document.addEventListener('livewire:navigated', () => refreshRutxCharts());
 

@@ -15,7 +15,7 @@
 
     <form wire:submit="consultar">
         <x-filter-bar>
-            <x-date-range :range="$range" label="Filtro por" />
+            <x-date-range :range="$range" />
 
             <x-date-input id="reportes-date-from" label="Desde" wire:model="dateFrom" />
 
@@ -77,19 +77,6 @@
         @endforeach
     </div>
 
-    {{-- GrÃ¡fica temporal de ventas --}}
-    <x-chart
-        type="line"
-        :labels="$this->series['labels'] ?? []"
-        :datasets="$this->series['datasets'] ?? []"
-        format="currency"
-        :currency="$this->currency"
-        :height="340"
-        summary="Ventas a travÃ©s del tiempo"
-        class="mb-6"
-    />
-
-    {{-- GrÃ¡fica comparativa por ruta --}}
     <x-chart
         type="bar"
         :labels="$this->routeChart['labels'] ?? []"
@@ -104,11 +91,7 @@
         <x-data-table :headers="['Ruta', 'Piezas', 'Contado', 'Crédito', 'Total']" :items="$this->movimientos">
             <x-slot:row>
                 @foreach ($this->movimientos as $row)
-                    <tr x-show="Math.ceil({{ $loop->iteration }} / perPage) === page"
-                        x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0 translate-y-1"
-                        x-transition:enter-end="opacity-100 translate-y-0"
-                        class="border-b border-rutx-border hover:bg-rutx-secondary/10 transition-colors">
+                    <tr class="border-b border-rutx-border hover:bg-rutx-secondary/10 transition-colors">
                         <td class="px-4 py-3 text-sm text-rutx-text">{{ $row['route_name'] }}</td>
                         <td class="px-4 py-3 text-sm text-right font-mono text-rutx-text">{{ $row['pieces'] }}</td>
                         <td class="px-4 py-3 text-sm text-right"><x-currency :amount="$row['cash_amount']" /></td>

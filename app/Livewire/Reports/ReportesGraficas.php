@@ -157,7 +157,7 @@ class ReportesGraficas extends Component
                 [
                     'label' => 'Crédito',
                     'data' => array_map(fn (array $r): float => (float) ($r['credit_amount'] ?? 0.0), $byRoute),
-                    'colorToken' => '--rutx-chart-orange',
+                    'colorToken' => '--rutx-chart-cyan',
                 ],
             ],
         ];
