@@ -39,8 +39,8 @@ class ReportesGraficasTest extends TestCase
             ->assertSee('Entrega')
             ->assertSee('Gastos')
             ->assertSee('$ 0.00')
-            ->assertSee('Ruta Stub Norte')
-            ->assertSee('Ruta Stub Sur')
+            ->assertSee('Sin datos para el período seleccionado')
+            ->assertSee('Sin registros para este período')
             ->assertSee('wire:poll.30s', false);
     }
 
@@ -58,12 +58,6 @@ class ReportesGraficasTest extends TestCase
                     ],
                     'meta' => ['currency' => 'MXN', 'last_sync_at' => null],
                 ],
-            ]);
-        $dashboard->shouldReceive('salesSeries')
-            ->once()
-            ->andReturn([
-                'success' => true,
-                'data' => ['series' => []],
             ]);
         $this->app->instance(DashboardService::class, $dashboard);
 
@@ -103,7 +97,6 @@ class ReportesGraficasTest extends TestCase
     {
         $dashboard = Mockery::mock(DashboardService::class);
         $dashboard->shouldReceive('summary')->andReturn(['success' => true, 'data' => ['kpi' => []]]);
-        $dashboard->shouldReceive('salesSeries')->andReturn(['success' => true, 'data' => ['series' => []]]);
         $this->app->instance(DashboardService::class, $dashboard);
 
         $reports = Mockery::mock(ReportsService::class);
@@ -129,14 +122,13 @@ class ReportesGraficasTest extends TestCase
         $this->assertSame('--rutx-chart-blue', $chart['datasets'][0]['colorToken']);
         $this->assertSame('Crédito', $chart['datasets'][1]['label']);
         $this->assertSame([200.0, 100.0], $chart['datasets'][1]['data']);
-        $this->assertSame('--rutx-chart-orange', $chart['datasets'][1]['colorToken']);
+        $this->assertSame('--rutx-chart-cyan', $chart['datasets'][1]['colorToken']);
     }
 
     public function test_renders_visual_fixture_with_large_amounts_sublines_and_details(): void
     {
         $dashboard = Mockery::mock(DashboardService::class);
         $dashboard->shouldReceive('summary')->andReturn(VisualDashboardFixture::summary());
-        $dashboard->shouldReceive('salesSeries')->andReturn(['success' => true, 'data' => ['series' => []]]);
         $this->app->instance(DashboardService::class, $dashboard);
 
         $reports = Mockery::mock(ReportsService::class);
@@ -174,7 +166,6 @@ class ReportesGraficasTest extends TestCase
     {
         $dashboard = Mockery::mock(DashboardService::class);
         $dashboard->shouldReceive('summary')->andReturn(['success' => true, 'data' => ['kpi' => []]]);
-        $dashboard->shouldReceive('salesSeries')->andReturn(['success' => true, 'data' => ['series' => []]]);
         $this->app->instance(DashboardService::class, $dashboard);
 
         $reports = Mockery::mock(ReportsService::class);
