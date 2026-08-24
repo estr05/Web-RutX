@@ -266,48 +266,95 @@ class ReportesGraficasTest extends TestCase
 
     public function test_partial_dates_show_warning_and_skip_all_http_calls(): void
     {
-        // Las tres expectativas se consumen ÚNICAMENTE con los filtros válidos
-        // del mount inicial. Cualquier llamada extra (con fechas parciales)
-        // haría fallar el test por expectativa agotada.
+        // Las expectativas 'once()' se consumen ÚNICAMENTE con los filtros válidos
+        // del mount inicial. Al asignar filtros inválidos no debe haber llamadas extra.
         $dashboard = Mockery::mock(DashboardService::class);
-        $dashboard->shouldReceive('summary')
-            ->once()
-            ->andReturn(['success' => true, 'data' => ['kpi' => []]]);
-        $dashboard->shouldReceive('salesSeries')
-            ->once()
-            ->andReturn(['success' => false]);
+        $dashboard->shouldReceive('summary')->once()->andReturn(['success' => true, 'data' => ['kpi' => []]]);
+        $dashboard->shouldReceive('salesSeries')->once()->andReturn(['success' => false]);
         $this->app->instance(DashboardService::class, $dashboard);
 
         $reports = Mockery::mock(ReportsService::class);
-        $reports->shouldReceive('report')
-            ->once()
-            ->andReturn([
-                'success' => true,
-                'data' => [
-                    'totals' => [],
-                    'by_route' => [['route_name' => 'Ruta A', 'pieces' => 1, 'cash_amount' => 10.0, 'credit_amount' => 5.0, 'total_amount' => 15.0]],
-                    'status' => 'ok',
-                ],
-            ]);
+        $reports->shouldReceive('report')->once()->andReturn(['success' => true, 'data' => []]);
         $this->app->instance(ReportsService::class, $reports);
 
         Livewire::test(ReportesGraficas::class)
+            // Asignar solo dateFrom (estado inválido) sin llamar a consultar()
             ->set('dateFrom', '2026-08-14')
-            ->call('consultar')
-            ->assertHasErrors(['date_to'])
+            ->assertSee('filtros incompletos o inválidos', false)
+            ->assertDontSee('Total período');
+    }
+
+    public function test_only_date_to_shows_warning_without_consultar(): void
+    {
+        $dashboard = Mockery::mock(DashboardService::class);
+        $dashboard->shouldReceive('summary')->once()->andReturn(['success' => true, 'data' => ['kpi' => []]]);
+        $dashboard->shouldReceive('salesSeries')->once()->andReturn(['success' => false]);
+        $this->app->instance(DashboardService::class, $dashboard);
+
+        $reports = Mockery::mock(ReportsService::class);
+        $reports->shouldReceive('report')->once()->andReturn(['success' => true, 'data' => []]);
+        $this->app->instance(ReportsService::class, $reports);
+
+        Livewire::test(ReportesGraficas::class)
+            ->set('dateTo', '2026-08-14')
             ->assertSee('filtros incompletos o inválidos', false);
     }
 
-    public function test_inverted_dates_fail_validation(): void
+    public function test_inverted_dates_fail_validation_without_extra_calls(): void
     {
-        config()->set('services.api_web.stubs_enabled', true);
+        $dashboard = Mockery::mock(DashboardService::class);
+        $dashboard->shouldReceive('summary')->once()->andReturn(['success' => true, 'data' => ['kpi' => []]]);
+        $dashboard->shouldReceive('salesSeries')->once()->andReturn(['success' => false]);
+        $this->app->instance(DashboardService::class, $dashboard);
+
+        $reports = Mockery::mock(ReportsService::class);
+        $reports->shouldReceive('report')->once()->andReturn(['success' => true, 'data' => []]);
+        $this->app->instance(ReportsService::class, $reports);
 
         Livewire::test(ReportesGraficas::class)
             ->set('dateFrom', '2026-08-20')
             ->set('dateTo', '2026-08-10')
-            ->call('consultar')
+            ->assertSee('filtros incompletos o inválidos', false)
+            ->call('consultar') // Forzamos consulta explícita para evaluar el ErrorBag
             ->assertHasErrors(['date_to'])
             ->assertSee('filtros incompletos o inválidos', false);
+    }
+
+    public function test_invalid_date_format_shows_warning(): void
+    {
+        config()->set('services.api_web.stubs_enabled', true);
+
+        Livewire::test(ReportesGraficas::class)
+            ->set('dateFrom', '2026/08/10')
+            ->assertSee('filtros incompletos o inválidos', false)
+            ->call('consultar')
+            ->assertHasErrors(['date_from']);
+    }
+
+    public function test_correcting_filters_removes_warning_and_resumes_calls(): void
+    {
+        // En este test, los servicios se llamarán en el mount inicial (1) y luego
+        // otra vez cuando los filtros vuelvan a ser válidos en conjunto (2).
+        $dashboard = Mockery::mock(DashboardService::class);
+        $dashboard->shouldReceive('summary')->twice()->andReturn(['success' => true, 'data' => ['kpi' => []]]);
+        $dashboard->shouldReceive('salesSeries')->twice()->andReturn(['success' => false]);
+        $this->app->instance(DashboardService::class, $dashboard);
+
+        $reports = Mockery::mock(ReportsService::class);
+        $reports->shouldReceive('report')->twice()->andReturn(['success' => true, 'data' => []]);
+        $this->app->instance(ReportsService::class, $reports);
+
+        Livewire::test(ReportesGraficas::class)
+            // Estado válido inicial -> consume la 1ra llamada
+            ->assertDontSee('filtros incompletos o inválidos', false)
+            
+            // Estado inválido (solo dateFrom) -> NO debe consumir llamadas
+            ->set('dateFrom', '2026-08-10')
+            ->assertSee('filtros incompletos o inválidos', false)
+            
+            // Estado válido (rango completo) -> consume la 2da llamada
+            ->set('dateTo', '2026-08-16')
+            ->assertDontSee('filtros incompletos o inválidos', false);
     }
 
     public function test_valid_date_range_passes_validation_and_queries(): void

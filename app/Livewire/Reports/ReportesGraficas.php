@@ -47,12 +47,13 @@ class ReportesGraficas extends Component
     public int $perPage = 10;
 
     /**
-     * True cuando el estado actual de los filtros no pasa las reglas de
-     * ReportFilterRequest (fechas parciales/invertidas). filterPayload()
-     * lo actualiza en cada evaluación; la vista muestra un aviso visible
-     * y no se envía ningún payload parcial a la API.
+     * Propiedad computada pura que evalúa si los filtros actuales son inválidos
+     * (por ejemplo, fechas parciales o invertidas).
      */
-    public bool $hasInvalidFilters = false;
+    public function getHasInvalidFiltersProperty(): bool
+    {
+        return Validator::make($this->filterInput(), (new ReportFilterRequest)->rules())->fails();
+    }
 
     public function render()
     {
@@ -317,14 +318,12 @@ class ReportesGraficas extends Component
         $validator = Validator::make($this->filterInput(), (new ReportFilterRequest)->rules());
 
         if ($validator->fails()) {
-            $this->hasInvalidFilters = true;
             $this->dispatch('rutx:feedback', Feedback::error('Revisa los filtros del reporte.'));
             $this->setErrorBag($validator->errors());
 
             return;
         }
 
-        $this->hasInvalidFilters = false;
         $this->page = 1;
         $this->resetErrorBag();
     }
@@ -335,7 +334,6 @@ class ReportesGraficas extends Component
     public function limpiar()
     {
         $this->reset(['range', 'dateFrom', 'dateTo', 'zoneId', 'routeId']);
-        $this->hasInvalidFilters = false;
         $this->resetErrorBag();
         $this->page = 1;
     }
@@ -386,15 +384,11 @@ class ReportesGraficas extends Component
      */
     private function filterPayload(): array
     {
-        try {
-            $validated = Validator::make($this->filterInput(), (new ReportFilterRequest)->rules())->validated();
-        } catch (ValidationException) {
-            $this->hasInvalidFilters = true;
-
+        if ($this->hasInvalidFilters) {
             return [];
         }
 
-        $this->hasInvalidFilters = false;
+        $validated = Validator::make($this->filterInput(), (new ReportFilterRequest)->rules())->validated();
 
         return collect($validated)
             ->reject(fn (mixed $value): bool => is_null($value) || $value === '')
