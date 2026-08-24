@@ -347,11 +347,11 @@ class ReportesGraficasTest extends TestCase
         Livewire::test(ReportesGraficas::class)
             // Estado válido inicial -> consume la 1ra llamada
             ->assertDontSee('filtros incompletos o inválidos', false)
-            
+
             // Estado inválido (solo dateFrom) -> NO debe consumir llamadas
             ->set('dateFrom', '2026-08-10')
             ->assertSee('filtros incompletos o inválidos', false)
-            
+
             // Estado válido (rango completo) -> consume la 2da llamada
             ->set('dateTo', '2026-08-16')
             ->assertDontSee('filtros incompletos o inválidos', false);
