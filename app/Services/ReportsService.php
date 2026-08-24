@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Log;
+
 /**
  * ReportsService — reportes consolidados del módulo Venta.
  *
@@ -36,7 +38,7 @@ class ReportsService
     {
         // Path relativo: ApiClient ya lleva la base con /api/v2/web.
         if (! config('services.api_web.stubs_enabled', false)) {
-            return $this->resolve($this->api->get('/reports/sales', $filters));
+            return $this->resolveSalesReport($this->api->get('/reports/sales', $filters));
         }
 
         return [
@@ -121,5 +123,73 @@ class ReportsService
         }
 
         return ['success' => true, 'data' => $response['data']];
+    }
+
+    /**
+     * Normaliza la respuesta de /reports/sales validando la forma contractual
+     * de data.by_route antes de exponerla a la interfaz.
+     *
+     * Tres casos distinguibles:
+     *   1. success=false (API caída, 4xx/5xx) → se propaga code/message/trace_id.
+     *   2. Envelope malformado → INVALID_ENVELOPE con mensaje funcional;
+     *      el detalle queda solo en el canal api_errors (nunca en pantalla).
+     *   3. Éxito con by_route vacío ([] ) → éxito legítimo, tabla vacía.
+     */
+    private function resolveSalesReport(array $response): array
+    {
+        if (! ($response['success'] ?? false)) {
+            return ['success' => false] + $response;
+        }
+
+        $data = $response['data'] ?? null;
+
+        if (! $this->salesByRouteIsValid($data)) {
+            Log::channel('api_errors')->warning('Envelope de /reports/sales inválido.', [
+                'code' => 'INVALID_ENVELOPE',
+                'trace_id' => $response['trace_id'] ?? null,
+            ]);
+
+            return [
+                'success' => false,
+                'code' => 'INVALID_ENVELOPE',
+                'message' => __('El servicio respondió con una estructura inesperada.'),
+                'errors' => null,
+                'trace_id' => $response['trace_id'] ?? null,
+            ];
+        }
+
+        return [
+            'success' => true,
+            'data' => [
+                'totals' => is_array($data['totals'] ?? null) ? $data['totals'] : [],
+                'by_route' => $data['by_route'],
+                'status' => is_string($data['status'] ?? null) ? $data['status'] : 'ok',
+            ],
+        ];
+    }
+
+    /**
+     * Valida data.by_route contra el contrato v2: cada fila requiere
+     * route_name, pieces, cash_amount, credit_amount y total_amount.
+     * Un by_route vacío es válido (período sin ventas).
+     *
+     * @param  mixed  $data  Contenido de `data` del envelope de éxito.
+     */
+    private function salesByRouteIsValid(mixed $data): bool
+    {
+        if (! is_array($data) || ! isset($data['by_route']) || ! is_array($data['by_route'])) {
+            return false;
+        }
+
+        foreach ($data['by_route'] as $row) {
+            if (! is_array($row)
+                || ! array_key_exists('route_name', $row)
+                || ! isset($row['pieces'], $row['cash_amount'], $row['credit_amount'], $row['total_amount'])
+            ) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

@@ -90,6 +90,26 @@ final class VisualDashboardFixture
         ];
     }
 
+    /**
+     * Serie de ventas representativa para la gráfica de línea.
+     */
+    public static function series(): array
+    {
+        return [
+            'success' => true,
+            'data' => [
+                'series' => [
+                    ['period' => '2026-08-17', 'amount' => 81200.00],
+                    ['period' => '2026-08-18', 'amount' => 95400.50],
+                    ['period' => '2026-08-19', 'amount' => 78300.00],
+                    ['period' => '2026-08-20', 'amount' => 102750.25],
+                    ['period' => '2026-08-21', 'amount' => 669558.99],
+                ],
+                'currency' => 'MXN',
+            ],
+        ];
+    }
+
     public static function report(): array
     {
         return [

@@ -28,8 +28,10 @@ class ReportFilterRequest extends FormRequest
     {
         return [
             'range' => ['nullable', 'string', 'in:diario,semanal,mensual'],
-            'date_from' => ['nullable', 'date_format:Y-m-d'],
-            'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
+            // Fechas en pareja: una sola de las dos es un rango parcial y se
+            // rechaza (required_with dispara sobre el campo ausente).
+            'date_from' => ['nullable', 'date_format:Y-m-d', 'required_with:date_to'],
+            'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from', 'required_with:date_from'],
             'zone_id' => ['nullable', 'integer', 'min:1'],
             'route_id' => ['nullable', 'integer', 'min:1'],
         ];

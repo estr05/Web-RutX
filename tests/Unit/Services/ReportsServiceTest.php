@@ -100,7 +100,13 @@ class ReportsServiceTest extends TestCase
             '*/api/v2/web/reports/sales*' => Http::response([
                 'data' => [
                     'totals' => ['sales_amount' => 5000.0, 'pieces' => 120, 'currency' => 'MXN'],
-                    'by_route' => [['route_id' => 1, 'sales_amount' => 5000.0, 'pieces' => 120]],
+                    'by_route' => [[
+                        'route_name' => 'Ruta Centro',
+                        'pieces' => 120,
+                        'cash_amount' => 3200.0,
+                        'credit_amount' => 1800.0,
+                        'total_amount' => 5000.0,
+                    ]],
                     'status' => 'ok',
                 ],
                 'trace_id' => '01J-report-ok',
@@ -111,8 +117,114 @@ class ReportsServiceTest extends TestCase
 
         $this->assertTrue($result['success']);
         $this->assertSame(120, $result['data']['totals']['pieces']);
+        $this->assertSame('Ruta Centro', $result['data']['by_route'][0]['route_name']);
 
         Http::assertSent(fn (Request $request) => str_starts_with($request->url(), self::BASE_URL.'/reports/sales'));
+    }
+
+    public function test_report_with_empty_by_route_is_success_not_error(): void
+    {
+        Http::fake([
+            '*/api/v2/web/reports/sales*' => Http::response([
+                'data' => [
+                    'totals' => ['sales_amount' => 0.0, 'pieces' => 0, 'currency' => 'MXN'],
+                    'by_route' => [],
+                    'status' => 'ok',
+                ],
+                'trace_id' => '01J-report-empty',
+            ]),
+        ]);
+
+        $result = app(ReportsService::class)->report([]);
+
+        $this->assertTrue($result['success']);
+        $this->assertSame([], $result['data']['by_route']);
+    }
+
+    // -------------------------------------------------------------------------
+    // Envelope malformado — INVALID_ENVELOPE sin exponer el body al usuario
+    // -------------------------------------------------------------------------
+
+    public function test_report_missing_by_route_returns_invalid_envelope(): void
+    {
+        $logger = Mockery::mock();
+        $logger->shouldReceive('warning')
+            ->once()
+            ->withArgs(function (string $message, array $context): bool {
+                return str_contains($message, '/reports/sales')
+                    && $context['code'] === 'INVALID_ENVELOPE'
+                    && $context['trace_id'] === '01J-report-bad';
+            });
+
+        Log::shouldReceive('channel')->with('api_errors')->once()->andReturn($logger);
+
+        Http::fake([
+            '*/api/v2/web/reports/sales*' => Http::response([
+                'data' => ['status' => 'ok'], // falta by_route
+                'trace_id' => '01J-report-bad',
+            ]),
+        ]);
+
+        $result = app(ReportsService::class)->report([]);
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('INVALID_ENVELOPE', $result['code']);
+        $this->assertSame('El servicio respondió con una estructura inesperada.', $result['message']);
+        $this->assertSame('01J-report-bad', $result['trace_id']);
+    }
+
+    public function test_report_row_missing_required_field_returns_invalid_envelope(): void
+    {
+        Log::shouldReceive('channel')->with('api_errors')->once()->andReturnUsing(function () {
+            $logger = Mockery::mock();
+            $logger->shouldReceive('warning')->once();
+
+            return $logger;
+        });
+
+        Http::fake([
+            '*/api/v2/web/reports/sales*' => Http::response([
+                'data' => [
+                    'by_route' => [[
+                        'route_name' => 'Ruta Norte',
+                        'pieces' => 10,
+                        // falta cash_amount / credit_amount / total_amount
+                        'total_amount' => 100.0,
+                    ]],
+                ],
+                'trace_id' => '01J-report-row-bad',
+            ]),
+        ]);
+
+        $result = app(ReportsService::class)->report([]);
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('INVALID_ENVELOPE', $result['code']);
+        // El mensaje funcional no filtra el payload crudo.
+        $this->assertStringNotContainsString('Ruta Norte', (string) $result['message']);
+    }
+
+    public function test_report_non_array_by_route_returns_invalid_envelope(): void
+    {
+        Log::shouldReceive('channel')->with('api_errors')->once()->andReturnUsing(function () {
+            $logger = Mockery::mock();
+            $logger->shouldReceive('warning')->once();
+
+            return $logger;
+        });
+
+        Http::fake([
+            '*/api/v2/web/reports/sales*' => Http::response([
+                'data' => ['by_route' => 'no-soy-arreglo'],
+                'trace_id' => '01J-report-type-bad',
+            ]),
+        ]);
+
+        $result = app(ReportsService::class)->report([]);
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('INVALID_ENVELOPE', $result['code']);
+        $this->assertSame('01J-report-type-bad', $result['trace_id']);
     }
 
     public function test_comparison_hits_endpoint_and_returns_data(): void
