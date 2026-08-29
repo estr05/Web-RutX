@@ -157,18 +157,16 @@ class NavigationShellTest extends TestCase
         $this->session([
             'api_token' => 'web-token-test',
             'permissions' => [
-                'customers.read',
-                'products.read',
-                'products.price.read',
-                'inventory.read',
                 'reports.read',
-                'routes.monitor',
-                'config.users.read',
-                'config.roles.read',
-                'config.zones.read',
-                'notifications.read',
-                'agendas.read',
                 'sales.read',
+                'customers.read',
+                'inventory.read',
+                'routes.monitor',
+                'agendas.read',
+                'notifications.read',
+                'notifications.send',
+                'products.read',
+                'config.users.read',
             ],
         ]);
 
@@ -222,6 +220,7 @@ class NavigationShellTest extends TestCase
             'permissions' => [
                 'reports.read',
                 'routes.monitor',
+                'sales.read',
             ],
         ]);
 
@@ -254,6 +253,41 @@ class NavigationShellTest extends TestCase
         $response->assertSee('rutx-scroll rutx-scroll--dark', false);
         // La semántica accesible del anfitrión se conserva (prop tag="nav").
         $response->assertSee('<nav', false);
+    }
+
+    public function test_topbar_hides_module_when_user_lacks_all_view_permissions(): void
+    {
+        $this->session([
+            'api_token' => 'web-token-test',
+            'permissions' => [
+                'reports.read',
+            ],
+        ]);
+
+        $response = $this->get(route('venta.reportes'));
+
+        $response->assertStatus(200);
+        $response->assertSee('topbar-module-venta', false);
+        
+        $response->assertDontSee('topbar-module-ruta', false);
+        $response->assertDontSee('topbar-module-settings', false);
+        $response->assertDontSee('topbar-module-products', false);
+    }
+
+    public function test_sidebar_hides_view_when_user_lacks_permission(): void
+    {
+        $this->session([
+            'api_token' => 'web-token-test',
+            'permissions' => [
+                'reports.read',
+            ],
+        ]);
+
+        $response = $this->get(route('venta.reportes'));
+
+        $response->assertStatus(200);
+        $response->assertSee('sidebar-venta-reportes', false);
+        $response->assertDontSee('sidebar-venta-transacciones', false);
     }
 
     // -------------------------------------------------------------------------

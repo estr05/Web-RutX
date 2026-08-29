@@ -91,7 +91,11 @@
                         $isViewActive = ($currentRoute === $viewRoute);
                         $href         = Route::has($viewRoute) ? route($viewRoute) : '#';
                         $viewId       = 'sidebar-' . str_replace(['.', '_'], '-', $viewRoute);
+                        
+                        $userPermissions = (array) session('permissions', []);
+                        $canSeeView = in_array($view['permission'] ?? '', $userPermissions, true);
                     @endphp
+                    @if(!$canSeeView) @continue @endif
                     <li role="listitem">
                         <a
                             id="{{ $viewId }}"

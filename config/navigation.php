@@ -31,7 +31,7 @@ return [
                 'customers.transfer' => [
                     'label' => 'Traspaso de cliente',
                     'icon' => 'arrows-right-left',
-                    'permission' => 'customers.transfer',
+                    'permission' => 'customers.read',
                 ],
             ],
         ],
@@ -50,12 +50,12 @@ return [
                 'products.prices' => [
                     'label' => 'Listas de precio',
                     'icon' => 'currency-dollar',
-                    'permission' => 'products.price.read',
+                    'permission' => 'products.read',
                 ],
                 'products.zone-prices' => [
                     'label' => 'Precios por zona',
                     'icon' => 'map-pin',
-                    'permission' => 'products.price.read',
+                    'permission' => 'products.read',
                 ],
             ],
         ],
@@ -151,12 +151,12 @@ return [
                 'settings.roles' => [
                     'label' => 'Roles',
                     'icon' => 'shield-check',
-                    'permission' => 'config.roles.read',
+                    'permission' => 'config.users.read',
                 ],
                 'settings.zones' => [
                     'label' => 'Zonas',
                     'icon' => 'map',
-                    'permission' => 'config.zones.read',
+                    'permission' => 'config.users.read',
                 ],
             ],
         ],
