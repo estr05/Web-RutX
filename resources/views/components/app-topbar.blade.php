@@ -40,8 +40,23 @@
         @foreach(config('navigation.modules', []) as $moduleKey => $module)
             @php
                 $isActive = str_starts_with($currentRoute, $moduleKey . '.');
+                
+                $userPermissions = (array) session('permissions', []);
+                $accessibleRoutes = [];
+                foreach ($module['views'] as $viewRoute => $view) {
+                    if (in_array($view['permission'] ?? '', $userPermissions, true)) {
+                        $accessibleRoutes[] = $viewRoute;
+                    }
+                }
+                
+                $hasModuleAccess = count($accessibleRoutes) > 0;
+            @endphp
+            @if(!$hasModuleAccess) @continue @endif
+
+            @php
                 $defaultRoute = $module['default_route'] ?? '';
-                $href = (Route::has($defaultRoute)) ? route($defaultRoute) : '#';
+                $targetRoute = in_array($defaultRoute, $accessibleRoutes, true) ? $defaultRoute : $accessibleRoutes[0];
+                $href = Route::has($targetRoute) ? route($targetRoute) : '#';
             @endphp
 
             <a
