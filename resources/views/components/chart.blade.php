@@ -29,8 +29,8 @@
     'emptyMessage' => 'Sin datos para el período seleccionado',
 ])
 
-<div class="bg-rutx-surface border border-rutx-border rounded-lg p-4 shadow-[var(--rutx-shadow-base)]">
-    <div style="height: {{ $height }}px;" class="w-full">
+<div {{ $attributes->merge(['class' => 'bg-rutx-surface border border-rutx-border rounded-lg p-4 shadow-[var(--rutx-shadow-base)]']) }}>
+    <div style="height: {{ $height }}px;" class="w-full overflow-hidden">
         @if (empty($labels) || empty($datasets))
             <div class="w-full h-full flex items-center justify-center">
                 <p class="text-sm text-rutx-text-muted text-center" role="status">

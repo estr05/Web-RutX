@@ -1,6 +1,8 @@
 @props(['headers' => [], 'items' => []])
 
-<div class="bg-rutx-surface border border-rutx-border rounded-lg overflow-hidden shadow-[var(--rutx-shadow-base)]">
+{{-- $attributes se reenvía: los consumidores pueden pasar wire:key estable
+     (basado en filtros, no en cada ciclo de polling) u otros atributos. --}}
+<div {{ $attributes->merge(['class' => 'bg-rutx-surface border border-rutx-border rounded-lg overflow-hidden shadow-[var(--rutx-shadow-base)]']) }}>
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>

@@ -8,6 +8,7 @@
         "lint:css": "stylelint \"resources/css/**/*.css\"",
         "lint:js": "eslint resources/js",
         "lint": "npm run lint:css && npm run lint:js",
+        "test:js": "node --test tests/js/*.test.mjs",
         "check-tokens": "bash scripts/check-rutx-tokens.sh"
     },
     "devDependencies": {

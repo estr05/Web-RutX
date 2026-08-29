@@ -43,6 +43,22 @@
         </x-filter-bar>
     </form>
 
+    @if ($this->hasInvalidFilters)
+        <div class="mb-6">
+            <x-alert
+                type="warning"
+                message="Hay filtros incompletos o inválidos (las fechas Desde/Hasta deben ir en pareja y en orden). Corrígelos antes de consultar."
+            />
+        </div>
+    @elseif ($this->apiError)
+        <div class="mb-6">
+            <x-alert
+                type="error"
+                message="{{ $this->apiError['source'] }} no está disponible ahora ({{ $this->apiError['code'] }}): {{ $this->apiError['message'] }} Los datos mostrados pueden estar desactualizados."
+            />
+        </div>
+    @endif
+
     {{-- Fila 1: métricas monetarias principales (4 tarjetas) --}}
     <div class="grid grid-cols-1 md:grid-cols-[repeat(4,minmax(0,1fr))] gap-4 mb-4">
         @foreach (array_slice($this->kpi, 0, 4) as $card)
@@ -77,20 +93,38 @@
         @endforeach
     </div>
 
+    {{-- Serie temporal de ventas (DashboardService::salesSeries → línea) --}}
     <x-chart
-        type="bar"
-        :labels="$this->routeChart['labels'] ?? []"
-        :datasets="$this->routeChart['datasets'] ?? []"
+        type="line"
+        id="rutx-chart-series"
+        :labels="$this->series['labels'] ?? []"
+        :datasets="$this->series['datasets'] ?? []"
         format="currency"
         :currency="$this->currency"
-        :height="340"
-        summary="Ventas por Ruta — Contado vs Crédito"
+        :height="300"
+        summary="Serie temporal de ventas del período"
     />
 
     <div class="mt-6">
-        <x-data-table :headers="['Ruta', 'Piezas', 'Contado', 'Crédito', 'Total']" :items="$this->movimientos">
+        <x-chart
+            type="bar"
+            :labels="$this->routeChart['labels'] ?? []"
+            :datasets="$this->routeChart['datasets'] ?? []"
+            format="currency"
+            :currency="$this->currency"
+            :height="340"
+            summary="Ventas por Ruta — Contado vs Crédito"
+        />
+    </div>
+
+    <div class="mt-6">
+        <x-data-table
+            wire:key="reportes-tabla-{{ $this->filterKey }}-{{ count($this->movimientos) }}"
+            :headers="['Ruta', 'Piezas', 'Contado', 'Crédito', 'Total']"
+            :items="$paginatedMovimientos"
+        >
             <x-slot:row>
-                @foreach ($this->movimientos as $row)
+                @foreach ($paginatedMovimientos as $row)
                     <tr class="border-b border-rutx-border hover:bg-rutx-secondary/10 transition-colors">
                         <td class="px-4 py-3 text-sm text-rutx-text">{{ $row['route_name'] }}</td>
                         <td class="px-4 py-3 text-sm text-right font-mono text-rutx-text">{{ $row['pieces'] }}</td>
@@ -119,6 +153,40 @@
                         </td>
                     </tr>
                 </x-slot:footer>
+            @endif
+
+            @if ($pageCount > 1)
+                <x-slot:pagination>
+                    <div
+                        class="flex items-center justify-between text-sm text-rutx-text-muted"
+                        role="navigation"
+                        aria-label="Paginación de la tabla de movimientos"
+                    >
+                        <span>Página {{ $this->page }} de {{ $pageCount }}</span>
+                        <span class="flex gap-2">
+                            <button
+                                type="button"
+                                wire:click="prevPage"
+                                @disabled($this->page <= 1)
+                                class="h-8 px-3 rounded-lg border border-rutx-border text-rutx-text
+                                       hover:bg-rutx-secondary/10 transition-colors text-sm font-medium
+                                       disabled:opacity-40 disabled:pointer-events-none"
+                            >
+                                Anterior
+                            </button>
+                            <button
+                                type="button"
+                                wire:click="nextPage"
+                                @disabled($this->page >= $pageCount)
+                                class="h-8 px-3 rounded-lg border border-rutx-border text-rutx-text
+                                       hover:bg-rutx-secondary/10 transition-colors text-sm font-medium
+                                       disabled:opacity-40 disabled:pointer-events-none"
+                            >
+                                Siguiente
+                            </button>
+                        </span>
+                    </div>
+                </x-slot:pagination>
             @endif
         </x-data-table>
     </div>
